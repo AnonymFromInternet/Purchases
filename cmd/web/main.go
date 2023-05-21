@@ -46,14 +46,12 @@ func (application *application) serve() error {
 		WriteTimeout:      5 * time.Second,
 	}
 
-	application.infoLog.Println(fmt.Sprintf("Starting HTTP server in mode %s on port %d", application.config.env, application.config.port))
+	application.infoLog.Println(fmt.Sprintf("Starting HTTP server in %s mode on port %d", application.config.env, application.config.port))
 
 	return server.ListenAndServe()
 }
 
-func main() {
-	var config config
-
+func setConfig(config *config) {
 	flag.IntVar(&config.port, "port", 4000, "Server port to listen on")
 	flag.StringVar(&config.env, "env", "development", "Application environment{development|production}")
 	flag.StringVar(&config.api, "api", "http://localhost:4001", "URL to api")
@@ -62,6 +60,11 @@ func main() {
 
 	config.stripe.publicKey = os.Getenv("STRIPE_PUBLIC_KEY")
 	config.stripe.secretKey = os.Getenv("STRIPE_SECRET_KEY")
+}
+
+func main() {
+	var config config
+	setConfig(&config)
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
@@ -81,5 +84,4 @@ func main() {
 		application.errorLog.Println("[main]:[main] - err := application.serve()", err)
 		log.Fatal(err)
 	}
-
 }
