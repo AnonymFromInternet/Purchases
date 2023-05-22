@@ -75,9 +75,19 @@ func (application *application) parseTemplate(partials []string, pageName string
 
 		// Скорее всего тут в темплейт с именем "%s.page.gohtml", pageName, например main.page.gohtml парсятся данные из
 		// base.layout.gohtml, partials и "templates/%s.page.gohtml", pageName, например templates/main.page.gohtml
-		tmpl, err = template.New(fmt.Sprintf("%s.page.gohtml", pageName)).Funcs(functions).ParseFS(templateFS, "templates/base.layout.gohtml", strings.Join(partials, ","), templateToRender)
+		// То есть файлы как бы мерджаться в один файл с именем например main.page.gohtml
+		tmpl, err = template.New(fmt.Sprintf("%s.page.gohtml", pageName)).Funcs(functions).ParseFS(
+			templateFS,
+			"templates/base.layout.gohtml",
+			strings.Join(partials, ","),
+			templateToRender,
+		)
 	} else {
-		tmpl, err = template.New(fmt.Sprintf("%s.page.gohtml", pageName)).Funcs(functions).ParseFS(templateFS, "templates/base.layout.gohtml", templateToRender)
+		tmpl, err = template.New(fmt.Sprintf("%s.page.gohtml", pageName)).Funcs(functions).ParseFS(
+			templateFS,
+			"templates/base.layout.gohtml",
+			templateToRender,
+		)
 	}
 
 	application.templateCache[templateToRender] = tmpl
