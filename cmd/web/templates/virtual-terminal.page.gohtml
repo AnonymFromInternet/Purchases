@@ -5,17 +5,102 @@
 {{end}}
 
 {{define "content"}}
-    <div class="container">
-        <div class="row">
-            <div class="col">
-                <h2>Virtual Terminal</h2>
-            </div>
+    <div class="row">
+        <div class="col">
+            <h2 class="text-center mt-3">Virtual Terminal</h2>
+            <hr>
+
+            <form
+                    action="/payment-succeed"
+                    method="post"
+                    name="charge-form"
+                    id="charge-form"
+                    class="d-block needs-validation charge-form"
+                    autocomplete="off"
+                    novalidate="novalidate"
+            >
+                <div class="mb-3">
+                    <label
+                            for="amount"
+                            class="form-label"
+                    >
+                        Amount
+                    </label>
+
+                    <input
+                            name="amount"
+                            id="amount"
+                            type="text"
+                            required
+                            autocomplete="amount-new"
+                            class="form-control"
+                    >
+                </div>
+
+                <div class="mb-3">
+                    <label
+                            for="cardholder_name"
+                            class="form-label"
+                    >
+                        Cardholder Name
+                    </label>
+
+                    <input
+                            name="cardholder-name"
+                            id="cardholder_name"
+                            type="text"
+                            required
+                            autocomplete="cardholder-name-new"
+                            class="form-control"
+                    >
+                </div>
+
+                <div class="mb-3">
+                    <label
+                            for="email"
+                            class="form-label"
+                    >
+                        Email
+                    </label>
+
+                    <input
+                            name="email"
+                            id="email"
+                            type="text"
+                            required
+                            autocomplete="email-new"
+                            class="form-control"
+                    >
+                </div>
+
+                <!-- stripe -->
+                <div class="mb-3">
+                    <label
+                            for="card_element"
+                            class="form-label"
+                    >
+                        Credit Card
+                    </label>
+
+                    <div id="card_element" class="form-control"></div>
+                    <div class="alert-danger text-center" id="card_errors" role="alert"></div>
+                    <div class="alert-success text-center" id="card_success" role="alert"></div>
+                </div>
+
+                <hr>
+
+                <a href="javascript:void(0)" id="pay_button" class="btn btn-primary" onclick="onPay()">Charge Card</a>
+
+            </form>
         </div>
     </div>
 {{end}}
 
 {{define "js"}}
+    <script src="https://js.stripe.com/v3"></script>
     <script>
-        console.log("Virtual Terminal is working")
+        onPay =() => {
+            console.log("Charge Card")
+        }
     </script>
 {{end}}
