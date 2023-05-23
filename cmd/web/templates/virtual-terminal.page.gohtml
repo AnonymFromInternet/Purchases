@@ -14,7 +14,7 @@
                     action="/payment-succeed"
                     method="post"
                     name="charge-form"
-                    id="charge-form"
+                    id="charge_form"
                     class="d-block needs-validation charge-form"
                     autocomplete="off"
                     novalidate="novalidate"
@@ -89,8 +89,16 @@
 
                 <hr>
 
-                <a href="javascript:void(0)" id="pay_button" class="btn btn-primary" onclick="onPay()">Charge Card</a>
+                <a href="javascript:void(0)" id="pay_button" class="btn btn-primary" onclick="onChargeCard()">Charge Card</a>
 
+                <div
+                    id="processing_payment"
+                    class="text-center d-none"
+                >
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
@@ -99,8 +107,62 @@
 {{define "js"}}
     <script src="https://js.stripe.com/v3"></script>
     <script>
-        onPay =() => {
-            console.log("Charge Card")
+
+        let card
+        let stripe = Stripe('pk_test_51NAAa2H05TTfxLt3LbCIUakd1KxUirl71AdAJ7yg0xXuoxYVzwIZYeaiLiNgubGu4EBEElyAaemJdCY5S24TJ3C700jIf4fsfg')
+
+        const cardMessages = document.getElementById('card_messages')
+        const payButton = document.getElementById('pay_button')
+        const processing = document.getElementById('processing_payment')
+
+        function hidePayButton() {
+            payButton.classList.add('d-none')
+            processing.classList.remove('d-none')
         }
+
+        function onChargeCard() {
+            let form = document.getElementById('charge_form')
+
+            if (!form.checkValidity()) {
+                this.event.preventDefault()
+                this.event.stopPropagation()
+                form.classList.add('was-validated')
+            } else {
+                form.classList.add('was-validated')
+                hidePayButton()
+            }
+        }
+
+        (() => {
+            // creating stripe and elements
+            const elements = stripe.elements()
+            const style = {
+                base: {
+                    fontSize: '16px',
+                    lineHeight: '24px',
+                }
+            }
+
+            card = elements.create('card', {
+                style,
+                hidePostalCode: true,
+            })
+
+            card.mount('#card_element')
+
+            card.addEventListener('change', (event) => {
+                let cardErrors = document.getElementById('card_errors')
+
+                if (event.error) {
+                    cardErrors.classList.remove('d-none')
+                    cardErrors.textContent = event.error.message
+                } else {
+                    cardErrors.classList.add('d-none')
+                    cardErrors.textContent = ''
+                }
+            })
+
+        })()
+
     </script>
 {{end}}
