@@ -43,38 +43,33 @@ func (application *application) handlerGetPaymentIntent(w http.ResponseWriter, r
 		Currency:  stripePayload.Currency,
 	}
 
-	okay := true
 	pi, errorMessage, err := card.ChargeCard(stripePayload.Currency, amount)
 	if err != nil {
-		okay = false
-	}
+		application.errorLog.Println("cannot get pi from charge card function", err)
 
-	if okay {
-		output, err := json.MarshalIndent(pi, "", " ")
-		if err != nil {
-			application.errorLog.Println("cannot convert pi into json", err)
-
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write(output)
-	} else {
-		response := jsonResponse{
+		errorResponse := jsonResponse{
 			Ok:      false,
 			Message: errorMessage,
 			Content: "",
 			Id:      0,
 		}
 
-		output, err := json.MarshalIndent(response, "", " ")
-		if err != nil {
-			application.errorLog.Println("cannot convert response into json", err)
+		application.convertToJsonAndSend(errorResponse, w)
 
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write(output)
+		return
 	}
+
+	application.convertToJsonAndSend(pi, w)
+}
+
+func (application *application) convertToJsonAndSend(data interface{}, w http.ResponseWriter) {
+	output, err := json.MarshalIndent(data, "", " ")
+	if err != nil {
+		application.errorLog.Println("cannot convert data into json", err)
+
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(output)
 }
