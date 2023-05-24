@@ -1,4 +1,4 @@
-package stripe
+package cards
 
 import (
 	"github.com/stripe/stripe-go/v72"
@@ -19,7 +19,7 @@ type Transaction struct {
 	BankReturnedCode    string
 }
 
-// ChargeCard is an alias for CreatePaymentIntent method for the case if a stripe analog will be used
+// ChargeCard is an alias for CreatePaymentIntent method for the case if a cards analog will be used
 func (card *Card) ChargeCard(currency string, amount int) (*stripe.PaymentIntent, string, error) {
 	return card.CreatePaymentIntent(currency, amount)
 }
