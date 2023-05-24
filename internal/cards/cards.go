@@ -66,7 +66,7 @@ func getStringFromStripeMessage(code stripe.ErrorCode) string {
 	case stripe.ErrorCodeBalanceInsufficient:
 		message = "Insufficient Balance"
 	default:
-		message = "Unknown Error and operation was declined"
+		message = "Unknown Error and the Operation was declined"
 	}
 
 	return message

@@ -8,6 +8,7 @@
     <div class="row">
         <div class="col">
             <h2 class="text-center mt-3">Virtual Terminal</h2>
+
             <hr>
 
             <form
@@ -83,7 +84,9 @@
                     </label>
 
                     <div id="card_element" class="form-control"></div>
+
                     <div class="alert-danger text-center" id="card_errors" role="alert"></div>
+
                     <div class="alert-success text-center" id="card_success" role="alert"></div>
                 </div>
 
@@ -99,6 +102,11 @@
                         <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
+
+                <input type="hidden" name="payment-intent" id="payment_intent">
+                <input type="hidden" name="payment-method" id="payment_method">
+                <input type="hidden" name="payment-amount" id="payment_amount">
+                <input type="hidden" name="payment-currency" id="payment_currency">
             </form>
         </div>
     </div>
@@ -106,8 +114,8 @@
 
 {{define "js"}}
     <script src="https://js.stripe.com/v3"></script>
-    <script>
 
+    <script>
         let card
         let stripe = Stripe('pk_test_51NAAa2H05TTfxLt3LbCIUakd1KxUirl71AdAJ7yg0xXuoxYVzwIZYeaiLiNgubGu4EBEElyAaemJdCY5S24TJ3C700jIf4fsfg')
 
@@ -130,9 +138,40 @@
             } else {
                 form.classList.add('was-validated')
                 hidePayButton()
+                postPaymentIndent()
             }
         }
 
+        function postPaymentIndent(data) {
+            let amountToCharge = String(parseFloat(document.getElementById('amount').value) * 100)
+            let payload = {
+                amount: amountToCharge,
+                currency: 'USD',
+            }
+
+            fetch("http://localhost:4001/api/payment-intent", {
+                method: 'post',
+                mode: 'cors',
+                headers:{
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            })
+                .then(response => response.text())
+                .then(data => {
+                    let parsedText
+                    
+                    try {
+                        parsedText = JSON.parse(data)
+                        console.log(parsedText)
+                    } catch (e) {
+                        console.log(e)
+                    }
+                })
+        }
+
+        // stripe connection to get settings for html element
         (() => {
             // creating stripe and elements
             const elements = stripe.elements()
@@ -163,6 +202,5 @@
             })
 
         })()
-
     </script>
 {{end}}

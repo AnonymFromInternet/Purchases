@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/AnonymFromInternet/Purchases/internal/cards"
 	"net/http"
 	"strconv"
@@ -19,7 +20,8 @@ type jsonResponse struct {
 	Id      int    `json:"id,omitempty"`
 }
 
-func (application *application) handlerGetPaymentIntent(w http.ResponseWriter, r *http.Request) {
+func (application *application) handlerPostPaymentIntent(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("handlerPostPaymentIntent()")
 	var err error
 	var stripePayload stripePayload
 
@@ -43,9 +45,9 @@ func (application *application) handlerGetPaymentIntent(w http.ResponseWriter, r
 		Currency:  stripePayload.Currency,
 	}
 
-	pi, errorMessage, err := card.ChargeCard(stripePayload.Currency, amount)
+	paymentIntent, errorMessage, err := card.ChargeCard(stripePayload.Currency, amount)
 	if err != nil {
-		application.errorLog.Println("cannot get pi from charge card function", err)
+		application.errorLog.Println("cannot get paymentIntent from charge card function", err)
 
 		errorResponse := jsonResponse{
 			Ok:      false,
@@ -59,7 +61,7 @@ func (application *application) handlerGetPaymentIntent(w http.ResponseWriter, r
 		return
 	}
 
-	application.convertToJsonAndSend(pi, w)
+	application.convertToJsonAndSend(paymentIntent, w)
 }
 
 func (application *application) convertToJsonAndSend(data interface{}, w http.ResponseWriter) {
