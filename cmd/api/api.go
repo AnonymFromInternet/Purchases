@@ -12,12 +12,10 @@ import (
 // For Backend Binary
 
 const version = "1.0.0"
-const cssVersion = "1"
 
 type config struct {
 	port int
 	env  string
-	api  string
 
 	db struct {
 		dataSourceName string
