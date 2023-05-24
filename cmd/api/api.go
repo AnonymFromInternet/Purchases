@@ -3,14 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"time"
 )
 
-// For Frontend Binary
+// For Backend Binary
 
 const version = "1.0.0"
 const cssVersion = "1"
@@ -31,11 +30,10 @@ type config struct {
 }
 
 type application struct {
-	config        config
-	infoLog       *log.Logger
-	errorLog      *log.Logger
-	templateCache map[string]*template.Template
-	version       string
+	config   config
+	infoLog  *log.Logger
+	errorLog *log.Logger
+	version  string
 }
 
 func (application *application) serve() error {
@@ -48,15 +46,14 @@ func (application *application) serve() error {
 		WriteTimeout:      5 * time.Second,
 	}
 
-	application.infoLog.Println(fmt.Sprintf("Starting HTTP server in %s mode on port %d", application.config.env, application.config.port))
+	application.infoLog.Println(fmt.Sprintf("Starting Backend server in %s mode on port %d", application.config.env, application.config.port))
 
 	return server.ListenAndServe()
 }
 
 func setConfig(config *config) {
-	flag.IntVar(&config.port, "port", 4000, "Server port to listen on")
-	flag.StringVar(&config.env, "env", "development", "Application environment{development|production}")
-	flag.StringVar(&config.api, "api", "http://localhost:4001", "URL to api")
+	flag.IntVar(&config.port, "port", 4001, "Server port to listen on")
+	flag.StringVar(&config.env, "env", "development", "Application environment{development|production|maintenance}")
 
 	flag.Parse()
 
@@ -71,19 +68,17 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	templateCache := make(map[string]*template.Template)
-
 	application := &application{
-		config:        config,
-		infoLog:       infoLog,
-		errorLog:      errorLog,
-		templateCache: templateCache,
-		version:       version,
+		config:   config,
+		infoLog:  infoLog,
+		errorLog: errorLog,
+		version:  version,
 	}
 
 	err := application.serve()
 	if err != nil {
-		application.errorLog.Println("[Frontend]:[main]:[main] - err := application.serve()", err)
+		application.errorLog.Println("[Backend]:[main]:[main] - err := application.serve()", err)
 		log.Fatal(err)
 	}
+
 }
