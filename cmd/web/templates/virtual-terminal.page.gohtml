@@ -11,6 +11,8 @@
 
             <hr>
 
+            <div class="alert alert-danger text-center d-none"></div>
+
             <form
                     action="/payment-succeed"
                     method="post"
@@ -123,11 +125,6 @@
         const payButton = document.getElementById('pay_button')
         const processing = document.getElementById('processing_payment')
 
-        function hidePayButton() {
-            payButton.classList.add('d-none')
-            processing.classList.remove('d-none')
-        }
-
         function onChargeCard() {
             let form = document.getElementById('charge_form')
 
@@ -164,11 +161,66 @@
                     
                     try {
                         parsedText = JSON.parse(data)
-                        console.log(parsedText)
+
+                        stripe.confirmCardPayment(parsedText, {
+                            payment_method: {
+                                card: card,
+                                billing_details: {
+                                    name: document.getElementById('cardholder_name').value
+                                },
+                            }
+                        }).then(result => {
+                            if (result.paymentIntent) {
+                                if (result.paymentIntent.statusCode === "succeeded") {
+                                    document.getElementById('payment_method').value = result.paymentIntent.payment_method_types[0]
+                                    document.getElementById('payment_intent').value = result.paymentIntent.id
+                                    document.getElementById('payment_amount').value = result.paymentIntent.amount
+                                    document.getElementById('payment_currency').value = result.paymentIntent.currency
+
+                                    hideLoadingSpinner()
+                                    showCardSuccess()
+
+                                    // submitting the form
+                                }
+                            }
+                        }).catch(e => {
+                            showCardError(e)
+                            showPayButton()
+                        })
+
                     } catch (e) {
-                        console.log(e)
+                        showCardError(e)
+                        showPayButton()
                     }
                 })
+        }
+
+        function hideLoadingSpinner() {
+            processing.classList.add('d-none')
+        }
+
+        function showCardError(error) {
+            cardMessages.classList.add('alert-danger')
+            cardMessages.classList.remove('alert-success')
+            cardMessages.classList.remove('d-none')
+            cardMessages.innerText = error.message
+        }
+
+        function showCardSuccess() {
+            cardMessages.classList.remove('alert-danger')
+            cardMessages.classList.add('alert-success')
+            cardMessages.classList.remove('d-none')
+            cardMessages.innerText = 'Transaction was successfully'
+        }
+
+        function showPayButton() {
+            payButton.classList.remove('d-none')
+            processing.classList.add('d-none')
+        }
+
+        function hidePayButton() {
+            payButton.classList.add('d-none')
+            processing.classList.remove('d-none')
         }
 
         // stripe connection to get settings for html element

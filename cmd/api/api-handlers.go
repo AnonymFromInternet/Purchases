@@ -23,16 +23,16 @@ type jsonResponse struct {
 func (application *application) handlerPostPaymentIntent(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("handlerPostPaymentIntent()")
 	var err error
-	var stripePayload stripePayload
+	var payload stripePayload
 
-	err = json.NewDecoder(r.Body).Decode(&stripePayload)
+	err = json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		application.errorLog.Println("cannot get payload from the request body", err)
 
 		return
 	}
 
-	amount, err := strconv.Atoi(stripePayload.Amount)
+	amount, err := strconv.Atoi(payload.Amount)
 	if err != nil {
 		application.errorLog.Println("cannot convert amount into int", err)
 
@@ -42,10 +42,10 @@ func (application *application) handlerPostPaymentIntent(w http.ResponseWriter, 
 	card := cards.Card{
 		PublicKey: application.config.stripe.publicKey,
 		SecretKey: application.config.stripe.secretKey,
-		Currency:  stripePayload.Currency,
+		Currency:  payload.Currency,
 	}
 
-	paymentIntent, errorMessage, err := card.ChargeCard(stripePayload.Currency, amount)
+	paymentIntent, errorMessage, err := card.ChargeCard(payload.Currency, amount)
 	if err != nil {
 		application.errorLog.Println("cannot get paymentIntent from charge card function", err)
 
