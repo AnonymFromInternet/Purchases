@@ -11,7 +11,7 @@
 
             <hr>
 
-            <div class="alert alert-danger text-center d-none"></div>
+            <div class="alert alert-danger text-center d-none" id="card_messages"></div>
 
             <form
                     action="/payment-succeed"
@@ -33,7 +33,7 @@
                     <input
                             name="amount"
                             id="amount"
-                            type="text"
+                            type="number"
                             required
                             autocomplete="amount-new"
                             class="form-control"
@@ -139,7 +139,7 @@
             }
         }
 
-        function postPaymentIndent(data) {
+        function postPaymentIndent() {
             let amountToCharge = String(parseFloat(document.getElementById('amount').value) * 100)
             let payload = {
                 amount: amountToCharge,
@@ -157,12 +157,12 @@
             })
                 .then(response => response.text())
                 .then(data => {
-                    let parsedText
+                    let parsedData
                     
                     try {
-                        parsedText = JSON.parse(data)
+                        parsedData = JSON.parse(data)
 
-                        stripe.confirmCardPayment(parsedText, {
+                        stripe.confirmCardPayment(parsedData.client_secret, {
                             payment_method: {
                                 card: card,
                                 billing_details: {
@@ -170,8 +170,16 @@
                                 },
                             }
                         }).then(result => {
+                            console.log('result :', result)
+                            if (result.error) {
+                                showCardError(result.error.message)
+                                showPayButton()
+
+                                return
+                            }
+
                             if (result.paymentIntent) {
-                                if (result.paymentIntent.statusCode === "succeeded") {
+                                if (result.paymentIntent.status === "succeeded") {
                                     document.getElementById('payment_method').value = result.paymentIntent.payment_method_types[0]
                                     document.getElementById('payment_intent').value = result.paymentIntent.id
                                     document.getElementById('payment_amount').value = result.paymentIntent.amount
@@ -183,11 +191,7 @@
                                     // submitting the form
                                 }
                             }
-                        }).catch(e => {
-                            showCardError(e)
-                            showPayButton()
                         })
-
                     } catch (e) {
                         showCardError(e)
                         showPayButton()
@@ -203,7 +207,7 @@
             cardMessages.classList.add('alert-danger')
             cardMessages.classList.remove('alert-success')
             cardMessages.classList.remove('d-none')
-            cardMessages.innerText = error.message
+            cardMessages.innerText = error
         }
 
         function showCardSuccess() {

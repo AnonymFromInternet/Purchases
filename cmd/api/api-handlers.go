@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/AnonymFromInternet/Purchases/internal/cards"
 	"net/http"
 	"strconv"
@@ -21,7 +20,6 @@ type jsonResponse struct {
 }
 
 func (application *application) handlerPostPaymentIntent(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("handlerPostPaymentIntent()")
 	var err error
 	var payload stripePayload
 

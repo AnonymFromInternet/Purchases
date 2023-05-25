@@ -56,8 +56,7 @@ func setConfig(config *config) {
 	flag.Parse()
 
 	config.stripe.publicKey = os.Getenv("STRIPE_PUBLIC_KEY")
-	config.stripe.secretKey = os.Getenv("STRIPE_SECRET_KEY") // В данный момент это поле пустое. Добавить информацию туда
-	fmt.Println("STRIPE_SECRET_KEY is :", config.stripe.secretKey)
+	config.stripe.secretKey = os.Getenv("STRIPE_SECRET_KEY")
 }
 
 func main() {
