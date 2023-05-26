@@ -34,7 +34,7 @@ start_frontend: build_frontend
 
 start_backend: build_backend
 	@echo "starting backend..."
-	@env STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY} STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}  ./dist/purchases_api -port=${BACKEND_PORT} &
+	@env STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY} STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY} ./dist/purchases_api -port=${BACKEND_PORT} &
 	@echo "backend running"
 
 
