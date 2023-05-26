@@ -53,7 +53,9 @@ func (application *application) serve() error {
 	return server.ListenAndServe()
 }
 
-func setConfig(config *config) {
+func getConfig() config {
+	var config config
+
 	flag.IntVar(&config.port, "port", 4000, "Server port to listen on")
 	flag.StringVar(&config.env, "env", "development", "Application environment{development|production}")
 	flag.StringVar(&config.api, "api", "http://localhost:4001", "URL to api")
@@ -62,19 +64,18 @@ func setConfig(config *config) {
 
 	config.stripe.publicKey = os.Getenv("STRIPE_PUBLIC_KEY")
 	config.stripe.secretKey = os.Getenv("STRIPE_SECRET_KEY")
+
+	return config
 }
 
 func main() {
-	var config config
-	setConfig(&config)
-
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	templateCache := make(map[string]*template.Template)
 
 	application := &application{
-		config:        config,
+		config:        getConfig(),
 		infoLog:       infoLog,
 		errorLog:      errorLog,
 		templateCache: templateCache,
