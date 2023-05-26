@@ -26,6 +26,7 @@ var functions = template.FuncMap{}
 var templateFS embed.FS
 
 func (application *application) addDefaultData(data *templateData, r *http.Request) *templateData {
+	data.Api = application.config.api
 	return data
 }
 

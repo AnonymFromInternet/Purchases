@@ -6,7 +6,12 @@ import (
 )
 
 func (application *application) handlerGetVirtualTerminal(w http.ResponseWriter, r *http.Request) {
-	if err := application.renderTemplate(w, r, "virtual-terminal", nil); err != nil {
+	stringMap := make(map[string]string)
+	stringMap["publicKey"] = application.config.stripe.publicKey
+
+	if err := application.renderTemplate(w, r, "virtual-terminal", &templateData{
+		StringMap: stringMap,
+	}); err != nil {
 		application.errorLog.Println(err)
 
 		return

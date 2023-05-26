@@ -119,7 +119,7 @@
 
     <script>
         let card
-        let stripe = Stripe('pk_test_51NAAa2H05TTfxLt3LbCIUakd1KxUirl71AdAJ7yg0xXuoxYVzwIZYeaiLiNgubGu4EBEElyAaemJdCY5S24TJ3C700jIf4fsfg')
+        let stripe = Stripe("{{index .StringMap "publicKey"}}")
 
         const cardMessages = document.getElementById('card_messages')
         const payButton = document.getElementById('pay_button')
@@ -146,7 +146,7 @@
                 currency: 'USD',
             }
 
-            fetch("http://localhost:4001/api/payment-intent", {
+            fetch("{{.Api}}/api/payment-intent", {
                 method: 'post',
                 mode: 'cors',
                 headers:{
