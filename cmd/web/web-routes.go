@@ -8,7 +8,9 @@ import (
 func (application *application) routes() http.Handler {
 	mux := chi.NewRouter()
 
-	mux.Get("/virtual-terminal", application.VirtualTerminal)
+	mux.Get("/virtual-terminal", application.handlerGetVirtualTerminal)
+
+	mux.Post("/payment-succeed", application.handlerPostPaymentSucceeded)
 
 	return mux
 }
