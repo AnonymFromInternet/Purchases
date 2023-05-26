@@ -52,15 +52,19 @@ func (application *application) serve() error {
 func getConfig() config {
 	var config config
 
-	flag.IntVar(&config.port, "port", 4001, "Server port to listen on")
-	flag.StringVar(&config.env, "env", "development", "Application environment{development|production|maintenance}")
-
-	flag.Parse()
+	setAndParseFlags(&config)
 
 	config.stripe.publicKey = os.Getenv("STRIPE_PUBLIC_KEY")
 	config.stripe.secretKey = os.Getenv("STRIPE_SECRET_KEY")
 
 	return config
+}
+
+func setAndParseFlags(config *config) {
+	flag.IntVar(&config.port, "port", 4001, "Server port to listen on")
+	flag.StringVar(&config.env, "env", "development", "Application environment{development|production|maintenance}")
+
+	flag.Parse()
 }
 
 func main() {
