@@ -38,7 +38,7 @@ start_backend: build_backend
 	@echo "backend running"
 
 
-start_fullstack: start_frontend start_backend
+start: start_frontend start_backend
 
 
 stop_frontend:
@@ -49,4 +49,4 @@ stop_backend:
 	@-pkill -SIGTERM -f "purchases_api -port=${BACKEND_PORT}"
 
 
-stop_fullstack: stop_frontend stop_backend
+stop: stop_frontend stop_backend
