@@ -9,9 +9,8 @@ func (application *application) handlerGetVirtualTerminal(w http.ResponseWriter,
 	stringMap := make(map[string]string)
 	stringMap["publicKey"] = application.config.stripe.publicKey
 
-	if err := application.renderTemplate(w, r, "virtual-terminal", &templateData{
-		StringMap: stringMap,
-	}); err != nil {
+	err := application.renderTemplate(w, r, "virtual-terminal", &templateData{StringMap: stringMap}, "stripe-js")
+	if err != nil {
 		application.errorLog.Println(err)
 
 		return
@@ -39,6 +38,16 @@ func (application *application) handlerPostPaymentSucceeded(w http.ResponseWrite
 		return
 	}
 
+}
+
+func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http.Request) {
+	stringMap := make(map[string]string)
+	stringMap["publicKey"] = application.config.stripe.publicKey
+
+	err := application.renderTemplate(w, r, "buy-once", &templateData{StringMap: stringMap}, "stripe-js")
+	if err != nil {
+		application.errorLog.Println(err)
+	}
 }
 
 func (application *application) getTemplateData(r *http.Request) map[string]interface{} {

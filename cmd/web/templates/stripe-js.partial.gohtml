@@ -1,0 +1,149 @@
+{{define "stripe-js"}}
+    <script src="https://js.stripe.com/v3"></script>
+
+    <script>
+        let card
+        let stripe = Stripe("{{index .StringMap "publicKey"}}")
+
+        const cardMessages = document.getElementById('card_messages')
+        const payButton = document.getElementById('pay_button')
+        const processing = document.getElementById('processing_payment')
+
+        function onChargeCard() {
+            let form = document.getElementById('charge_form')
+
+            if (!form.checkValidity()) {
+                this.event.preventDefault()
+                this.event.stopPropagation()
+                form.classList.add('was-validated')
+            } else {
+                form.classList.add('was-validated')
+                hidePayButton()
+                postPaymentIndent()
+            }
+        }
+
+        function postPaymentIndent() {
+            let amountToCharge = String(parseFloat(document.getElementById('amount').value) * 100)
+            let payload = {
+                amount: amountToCharge,
+                currency: 'USD',
+            }
+
+            fetch("{{.Api}}/api/payment-intent", {
+                method: 'post',
+                mode: 'cors',
+                headers:{
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            })
+                .then(response => response.text())
+                .then(data => {
+                    let parsedData
+
+                    try {
+                        parsedData = JSON.parse(data)
+
+                        stripe.confirmCardPayment(parsedData.client_secret, {
+                            payment_method: {
+                                card: card,
+                                billing_details: {
+                                    name: document.getElementById('cardholder_name').value
+                                },
+                            }
+                        }).then(result => {
+                            console.log('result :', result)
+                            if (result.error) {
+                                showCardError(result.error.message)
+                                showPayButton()
+
+                                return
+                            }
+
+                            if (result.paymentIntent) {
+                                if (result.paymentIntent.status === "succeeded") {
+                                    document.getElementById('payment_method').value = result.paymentIntent.payment_method_types[0]
+                                    document.getElementById('payment_intent').value = result.paymentIntent.id
+                                    document.getElementById('payment_amount').value = result.paymentIntent.amount
+                                    document.getElementById('payment_currency').value = result.paymentIntent.currency
+
+                                    hideLoadingSpinner()
+                                    showCardSuccess()
+
+                                    // submitting the form
+                                    setTimeout(() => {
+                                        document.getElementById("charge_form").submit()
+                                    }, 1000)
+                                }
+                            }
+                        })
+                    } catch (e) {
+                        showCardError(e)
+                        showPayButton()
+                    }
+                })
+        }
+
+        function hideLoadingSpinner() {
+            processing.classList.add('d-none')
+        }
+
+        function showCardError(error) {
+            cardMessages.classList.add('alert-danger')
+            cardMessages.classList.remove('alert-success')
+            cardMessages.classList.remove('d-none')
+            cardMessages.innerText = error
+        }
+
+        function showCardSuccess() {
+            cardMessages.classList.remove('alert-danger')
+            cardMessages.classList.add('alert-success')
+            cardMessages.classList.remove('d-none')
+            cardMessages.innerText = 'Transaction was successfully'
+        }
+
+        function showPayButton() {
+            payButton.classList.remove('d-none')
+            processing.classList.add('d-none')
+        }
+
+        function hidePayButton() {
+            payButton.classList.add('d-none')
+            processing.classList.remove('d-none')
+        }
+
+        // stripe connection to get settings for html element
+        (() => {
+            // creating stripe and elements
+            const elements = stripe.elements()
+            const style = {
+                base: {
+                    fontSize: '16px',
+                    lineHeight: '24px',
+                }
+            }
+
+            card = elements.create('card', {
+                style,
+                hidePostalCode: true,
+            })
+
+            card.mount('#card_element')
+
+            card.addEventListener('change', (event) => {
+                let cardErrors = document.getElementById('card_errors')
+
+                if (event.error) {
+                    cardErrors.classList.remove('d-none')
+                    cardErrors.textContent = event.error.message
+                } else {
+                    cardErrors.classList.add('d-none')
+                    cardErrors.textContent = ''
+                }
+            })
+
+        })()
+    </script>
+{{end}}
