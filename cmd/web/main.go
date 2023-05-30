@@ -1,8 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
+	"github.com/AnonymFromInternet/Purchases/internal/driver"
 	"html/template"
 	"log"
 	"net/http"
@@ -68,6 +70,7 @@ func setAndParseFlags(config *config) {
 	flag.IntVar(&config.port, "port", 4000, "Server port to listen on")
 	flag.StringVar(&config.env, "env", "development", "Application environment{development|production}")
 	flag.StringVar(&config.api, "api", "http://localhost:4001", "URL to api")
+	flag.StringVar(&config.db.dataSourceName, "dsn", "host=localhost port=5432 dbname=postgres user=postgres password=", "DSN")
 
 	flag.Parse()
 }
@@ -76,17 +79,30 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
+	config := getConfig()
+	dbConn, err := driver.OpenDB(config.db.dataSourceName)
+	if err != nil {
+		errorLog.Fatal("cannot connect to the database: ", err)
+	}
+
+	defer func(dbConn *sql.DB) {
+		err := dbConn.Close()
+		if err != nil {
+			errorLog.Fatal(err)
+		}
+	}(dbConn)
+
 	templateCache := make(map[string]*template.Template)
 
 	application := &application{
-		config:        getConfig(),
+		config:        config,
 		infoLog:       infoLog,
 		errorLog:      errorLog,
 		templateCache: templateCache,
 		version:       version,
 	}
 
-	err := application.serve()
+	err = application.serve()
 	if err != nil {
 		application.errorLog.Println("[Frontend]:[main]:[main] - err := application.serve()", err)
 		log.Fatal(err)

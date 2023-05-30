@@ -7,3 +7,5 @@
 [Postgres](https://www.postgresql.org/)
 
 [Stripe-go](https://github.com/stripe/stripe-go)
+
+[Jackc/pgx](https://github.com/jackc/pgx) as a sql driver
