@@ -20,7 +20,13 @@ type templateData struct {
 	CssVersion      string
 }
 
-var functions = template.FuncMap{}
+var functions = template.FuncMap{
+	"getConvertedPrice": getConvertedPrice,
+}
+
+func getConvertedPrice(notConvertedPrice int) string {
+	return fmt.Sprintf("$%.2f", float64(notConvertedPrice/100))
+}
 
 //go:embed templates
 var templateFS embed.FS
