@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/AnonymFromInternet/Purchases/internal/driver"
+	"github.com/AnonymFromInternet/Purchases/internal/models"
 	"html/template"
 	"log"
 	"net/http"
@@ -38,6 +39,7 @@ type application struct {
 	errorLog      *log.Logger
 	templateCache map[string]*template.Template
 	version       string
+	DB            models.DBModel
 }
 
 func (application *application) serve() error {
@@ -100,6 +102,7 @@ func main() {
 		errorLog:      errorLog,
 		templateCache: templateCache,
 		version:       version,
+		DB:            models.DBModel{DB: dbConn},
 	}
 
 	err = application.serve()

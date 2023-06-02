@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/AnonymFromInternet/Purchases/internal/cards"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
 )
@@ -17,6 +18,27 @@ type jsonResponse struct {
 	Message string `json:"message,omitempty"`
 	Content string `json:"content,omitempty"`
 	Id      int    `json:"id,omitempty"`
+}
+
+func (application *application) handlerGetWidgetById(w http.ResponseWriter, r *http.Request) {
+	idAsString := chi.URLParam(r, "id")
+	idAsInt, err := strconv.Atoi(idAsString)
+	if err != nil {
+		application.errorLog.Println("cannot convert widget id from url param into int", err)
+
+		return
+	}
+
+	widget, err := application.DB.GetWidget(idAsInt)
+	widgetAsResponse, err := json.MarshalIndent(widget, "", " ")
+
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write(widgetAsResponse)
+	if err != nil {
+		application.errorLog.Println("cannot sent widget as a response", err)
+
+		return
+	}
 }
 
 func (application *application) handlerPostPaymentIntent(w http.ResponseWriter, r *http.Request) {

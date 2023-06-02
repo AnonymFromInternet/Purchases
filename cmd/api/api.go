@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/AnonymFromInternet/Purchases/internal/driver"
+	"github.com/AnonymFromInternet/Purchases/internal/models"
 	"log"
 	"net/http"
 	"os"
@@ -34,6 +35,7 @@ type application struct {
 	infoLog  *log.Logger
 	errorLog *log.Logger
 	version  string
+	DB       models.DBModel
 }
 
 func (application *application) serve() error {
@@ -92,6 +94,7 @@ func main() {
 		infoLog:  infoLog,
 		errorLog: errorLog,
 		version:  version,
+		DB:       models.DBModel{DB: dbConn},
 	}
 
 	err = application.serve()
