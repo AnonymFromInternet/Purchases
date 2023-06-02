@@ -3,7 +3,7 @@
 
     <script>
         let card
-        let stripe = Stripe("{{index .StringMap "publicKey"}}")
+        let stripe = Stripe("{{index .StripePublicKey}}")
 
         const cardMessages = document.getElementById('card_messages')
         const payButton = document.getElementById('pay_button')

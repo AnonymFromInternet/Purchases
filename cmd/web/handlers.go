@@ -8,10 +8,7 @@ import (
 )
 
 func (application *application) handlerGetVirtualTerminal(w http.ResponseWriter, r *http.Request) {
-	stringMap := make(map[string]string)
-	stringMap["publicKey"] = application.config.stripe.publicKey
-
-	err := application.renderTemplate(w, r, "virtual-terminal", &templateData{StringMap: stringMap}, "stripe-js")
+	err := application.renderTemplate(w, r, "virtual-terminal", nil, "stripe-js")
 	if err != nil {
 		application.errorLog.Println(err)
 
@@ -43,9 +40,6 @@ func (application *application) handlerPostPaymentSucceeded(w http.ResponseWrite
 }
 
 func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http.Request) {
-	stringMap := make(map[string]string)
-	stringMap["publicKey"] = application.config.stripe.publicKey
-
 	widget := models.Widget{
 		Id:             1,
 		Name:           "Test Widget",
@@ -59,7 +53,7 @@ func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http
 	data := make(map[string]interface{})
 	data["widget"] = widget
 
-	err := application.renderTemplate(w, r, "buy-once", &templateData{StringMap: stringMap, Data: data}, "stripe-js")
+	err := application.renderTemplate(w, r, "buy-once", nil, "stripe-js")
 	if err != nil {
 		application.errorLog.Println(err)
 	}
