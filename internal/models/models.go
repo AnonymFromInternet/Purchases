@@ -45,6 +45,74 @@ func (model *DBModel) GetWidgetBy(id int) (Widget, error) {
 	return widget, nil
 }
 
+func (model *DBModel) InsertTransactionGetTransactionID(transaction Transaction) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	const query = `
+		INSERT into transactions
+			(amount, currency, last_four, backend_return_code, transaction_status_id, created_at, updated_at)
+		values($1, $2, $3, $4, $5, $6, $7)
+	`
+
+	result, err := model.DB.ExecContext(
+		ctx,
+		query,
+		transaction.Amount,
+		transaction.Currency,
+		transaction.LastFour,
+		transaction.BankReturnCode,
+		transaction.TransactionStatusID,
+		time.Now(),
+		time.Now(),
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(id), nil
+
+}
+
+func (model *DBModel) InsertOrderGetOrderID(order Order) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	const query = `
+		INSERT into orders
+			(widget_id, transaction_id, status_id, quantity, amount, created_at, updated_at)
+		values($1, $2, $3, $4, $5, $6, $7)
+	`
+
+	result, err := model.DB.ExecContext(
+		ctx,
+		query,
+		order.WidgetId,
+		order.TransactionId,
+		order.StatusId,
+		order.Quantity,
+		order.Amount,
+		time.Now(),
+		time.Now(),
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(id), nil
+
+}
+
 // Models for the postgres db
 
 type Widget struct {
