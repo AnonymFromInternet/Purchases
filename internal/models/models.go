@@ -20,19 +20,24 @@ func NewModels(db *sql.DB) Models {
 	}
 }
 
-func (model *DBModel) GetWidget(id int) (Widget, error) {
+func (model *DBModel) GetWidgetBy(id int) (Widget, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	const query = `
-		SELECT id, name from widgets
+		SELECT id, name, description, inventory_level, price, coalesce(image, ''),
+			created_at, updated_at
+		FROM widgets
 		WHERE id = $1
 	`
 
 	var widget Widget
 
 	row := model.DB.QueryRowContext(ctx, query, id)
-	err := row.Scan(&widget.Id, &widget.Name)
+	err := row.Scan(
+		&widget.ID, &widget.Name, &widget.Description, &widget.InventoryLevel, &widget.Price, &widget.Image,
+		&widget.CreatedAt, &widget.UpdatedAt,
+	)
 	if err != nil {
 		return widget, err
 	}
@@ -43,57 +48,58 @@ func (model *DBModel) GetWidget(id int) (Widget, error) {
 // Models for the postgres db
 
 type Widget struct {
-	Id             int       `json:"id"`
+	ID             int       `json:"id"`
 	Name           string    `json:"name"`
 	Description    string    `json:"description"`
 	InventoryLevel int       `json:"inventoryLevel"`
 	Price          int       `json:"price"`
+	Image          string    `json:"image"`
 	CreatedAt      time.Time `json:"-"`
 	UpdatedAt      time.Time `json:"-"`
 }
 
 type Order struct {
-	Id            int
-	WidgetIs      int
-	TransactionId string
-	StatusId      int
-	Quantity      int
-	Amount        int
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID            int       `json:"id"`
+	WidgetId      int       `json:"widgetId"`
+	TransactionId string    `json:"transactionId"`
+	StatusId      int       `json:"statusId"`
+	Quantity      int       `json:"quantity"`
+	Amount        int       `json:"amount"`
+	CreatedAt     time.Time `json:"-"`
+	UpdatedAt     time.Time `json:"-"`
 }
 
 type Status struct {
-	Id        int
-	Name      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
 }
 
 type TransactionStatus struct {
-	Id        int
-	Name      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
 }
 
 type Transaction struct {
-	Id                  int
-	Amount              int
-	Currency            string
-	LastFour            string
-	BackReturnCode      string
-	TransactionStatusId int
-	CreatedAt           time.Time
-	UpdatedAt           time.Time
+	ID                  int       `json:"id"`
+	Amount              int       `json:"amount"`
+	Currency            string    `json:"currency"`
+	LastFour            string    `json:"lastFour"`
+	BankReturnCode      string    `json:"bankReturnCode"`
+	TransactionStatusID int       `json:"transactionStatusId"`
+	CreatedAt           time.Time `json:"-"`
+	UpdatedAt           time.Time `json:"-"`
 }
 
 type User struct {
-	Id        int
-	FirstName string
-	LastName  string
-	Email     string
-	Password  string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        int       `json:"id"`
+	FirstName string    `json:"firstName"`
+	LastName  string    `json:"lastName"`
+	Email     string    `json:"email"`
+	Password  string    `json:"password"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
 }

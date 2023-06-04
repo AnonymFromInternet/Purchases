@@ -29,7 +29,7 @@ func (application *application) handlerGetWidgetById(w http.ResponseWriter, r *h
 		return
 	}
 
-	widget, err := application.DB.GetWidget(idAsInt)
+	widget, err := application.DB.GetWidgetBy(idAsInt)
 	widgetAsResponse, err := json.MarshalIndent(widget, "", " ")
 
 	w.Header().Set("Content-Type", "application/json")

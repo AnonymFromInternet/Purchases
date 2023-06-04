@@ -1,10 +1,9 @@
 package main
 
 import (
-	"github.com/AnonymFromInternet/Purchases/internal/models"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 func (application *application) handlerGetVirtualTerminal(w http.ResponseWriter, r *http.Request) {
@@ -40,20 +39,26 @@ func (application *application) handlerPostPaymentSucceeded(w http.ResponseWrite
 }
 
 func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http.Request) {
-	widget := models.Widget{
-		Id:             1,
-		Name:           "Test Widget",
-		Description:    "Very nice Widget",
-		InventoryLevel: 10,
-		Price:          1000,
-		CreatedAt:      time.Now(),
-		UpdatedAt:      time.Now(),
+	idAsString := chi.URLParam(r, "id")
+	idAsInt, err := strconv.Atoi(idAsString)
+	if err != nil {
+		application.errorLog.Println("cannot convert widget id from url param into int", err)
+
+		return
+	}
+
+	widget, err := application.DB.GetWidgetBy(idAsInt)
+
+	if err != nil {
+		application.errorLog.Println("cannot get widget from db", err)
+
+		return
 	}
 
 	data := make(map[string]interface{})
 	data["widget"] = widget
 
-	err := application.renderTemplate(w, r, "buy-once", nil, "stripe-js")
+	err = application.renderTemplate(w, r, "buy-once", &templateData{Data: data}, "stripe-js")
 	if err != nil {
 		application.errorLog.Println(err)
 	}

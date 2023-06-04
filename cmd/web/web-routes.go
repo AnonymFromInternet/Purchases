@@ -9,7 +9,7 @@ func (application *application) routes() http.Handler {
 	mux := chi.NewRouter()
 
 	mux.Get("/virtual-terminal", application.handlerGetVirtualTerminal)
-	mux.Get("/buy-once", application.handlerGetBuyOnce)
+	mux.Get("/widget/{id}", application.handlerGetBuyOnce)
 
 	mux.Post("/payment-succeed", application.handlerPostPaymentSucceeded)
 
