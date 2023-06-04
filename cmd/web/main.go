@@ -107,7 +107,7 @@ func main() {
 
 	err = application.serve()
 	if err != nil {
-		application.errorLog.Println("[Frontend]:[main]:[main] - err := application.serve()", err)
+		application.errorLog.Println("cannot serve the app", err)
 		log.Fatal(err)
 	}
 }
