@@ -15,4 +15,8 @@
     <p>Payment Method : {{index .Data "paymentMethod"}}</p>
     <p>Amount : {{index .Data "paymentAmount"}}</p>
     <p>Currency : {{index .Data "paymentCurrency"}}</p>
+
+    <p>Last four Card numbers: {{index .Data "lastFour"}}</p>
+    <p>Expr Date : {{index .Data "expiryMonth"}}/{{index .Data "expiryYear"}}</p>
+    <p>Bank returned Code : {{index .Data "bankReturnCode"}}</p>
 {{end}}

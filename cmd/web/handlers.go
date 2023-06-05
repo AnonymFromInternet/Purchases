@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/AnonymFromInternet/Purchases/internal/cards"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
@@ -79,6 +80,29 @@ func (application *application) getTemplateData(r *http.Request) map[string]inte
 		return nil
 	}
 
+	card := cards.Card{
+		PublicKey: application.config.stripe.publicKey,
+		SecretKey: application.config.stripe.secretKey,
+	}
+
+	pi, err := card.RetrievePaymentIntentBy(paymentIntent)
+	if err != nil {
+		application.errorLog.Println(err)
+
+		return nil
+	}
+
+	pm, err := card.GetPaymentMethod(paymentMethod)
+	if err != nil {
+		application.errorLog.Println(err)
+
+		return nil
+	}
+
+	lastFour := pm.Card.Last4
+	expiryMonth := pm.Card.ExpMonth
+	expiryYear := pm.Card.ExpYear
+
 	data := make(map[string]interface{})
 	data["email"] = email
 	data["cardholderName"] = cardHolderName
@@ -86,6 +110,10 @@ func (application *application) getTemplateData(r *http.Request) map[string]inte
 	data["paymentIntent"] = paymentIntent
 	data["paymentAmount"] = paymentAmountAsInt / 100
 	data["paymentCurrency"] = paymentCurrency
+	data["lastFour"] = lastFour
+	data["expiryMonth"] = expiryMonth
+	data["expiryYear"] = expiryYear
+	data["bankReturnCode"] = pi.Charges.Data[0].ID
 
 	return data
 }
