@@ -16,6 +16,15 @@ func (application *application) handlerGetVirtualTerminal(w http.ResponseWriter,
 	}
 }
 
+func (application *application) handlerGetMainPage(w http.ResponseWriter, r *http.Request) {
+	err := application.renderTemplate(w, r, "main", nil)
+	if err != nil {
+		application.errorLog.Println(err)
+
+		return
+	}
+}
+
 func (application *application) handlerPostPaymentSucceeded(w http.ResponseWriter, r *http.Request) {
 	var err error
 
@@ -26,7 +35,15 @@ func (application *application) handlerPostPaymentSucceeded(w http.ResponseWrite
 		return
 	}
 
+	// create a new customer
+
+	// create a new order
+
+	// create a new transaction
+
 	tmplData := application.getTemplateData(r)
+
+	// redirect after charging
 
 	err = application.renderTemplate(w, r, "payment-succeeded", &templateData{
 		Data: tmplData,
@@ -41,14 +58,14 @@ func (application *application) handlerPostPaymentSucceeded(w http.ResponseWrite
 
 func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http.Request) {
 	idAsString := chi.URLParam(r, "id")
-	idAsInt, err := strconv.Atoi(idAsString)
+	id, err := strconv.Atoi(idAsString)
 	if err != nil {
 		application.errorLog.Println("cannot convert widget id from url param into int", err)
 
 		return
 	}
 
-	widget, err := application.DB.GetWidgetBy(idAsInt)
+	widget, err := application.DB.GetWidgetBy(id)
 
 	if err != nil {
 		application.errorLog.Println("cannot get widget from db", err)
@@ -66,6 +83,13 @@ func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http
 }
 
 func (application *application) getTemplateData(r *http.Request) map[string]interface{} {
+	err := r.ParseForm()
+	if err != nil {
+		application.errorLog.Println("cannot parse a form", err)
+
+		return nil
+	}
+
 	email := r.Form.Get("email")
 	cardHolderName := r.Form.Get("cardholder-name")
 	paymentMethod := r.Form.Get("payment-method")
@@ -85,7 +109,7 @@ func (application *application) getTemplateData(r *http.Request) map[string]inte
 		SecretKey: application.config.stripe.secretKey,
 	}
 
-	pi, err := card.RetrievePaymentIntentBy(paymentIntent)
+	pi, err := card.RetrievePaymentIntent(paymentIntent)
 	if err != nil {
 		application.errorLog.Println(err)
 

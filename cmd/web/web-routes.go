@@ -8,6 +8,9 @@ import (
 func (application *application) routes() http.Handler {
 	mux := chi.NewRouter()
 
+	mux.Use(SessionLoadMiddleWare)
+
+	mux.Get("/main", application.handlerGetMainPage)
 	mux.Get("/virtual-terminal", application.handlerGetVirtualTerminal)
 	mux.Get("/widget/{id}", application.handlerGetBuyOnce)
 

@@ -55,8 +55,8 @@ func (card *Card) GetPaymentMethod(s string) (*stripe.PaymentMethod, error) {
 	return paymentmethod.Get(s, nil)
 }
 
-// RetrievePaymentIntentBy gets an existing pi by id
-func (card *Card) RetrievePaymentIntentBy(id string) (*stripe.PaymentIntent, error) {
+// RetrievePaymentIntent gets an existing pi by id
+func (card *Card) RetrievePaymentIntent(id string) (*stripe.PaymentIntent, error) {
 	stripe.Key = card.SecretKey
 
 	return paymentintent.Get(id, nil)

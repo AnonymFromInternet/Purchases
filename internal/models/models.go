@@ -113,6 +113,57 @@ func (model *DBModel) InsertOrderGetOrderID(order Order) (int, error) {
 
 }
 
+func (model *DBModel) InsertCustomerGetCustomerID(customer Customer) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	const query = `
+		INSERT into customres
+			(first_name, last_name, email, created_at, updated_at)
+		values($1, $2, $3, $4, $5)
+	`
+	result, err := model.DB.ExecContext(ctx, query,
+		customer.FirstName, customer.LastName, customer.Email, time.Now(), time.Now(),
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(id), nil
+}
+
+func (model *DBModel) InsertTransaction(transaction Transaction) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	const query = `
+		INSERT into transactions
+			(amount, currency, last_fout, bank_return_code, transaction_status_id, created_at, updated_at)
+		values($1, $2, $3, $4, $5, $6, $7)
+	`
+	_, err := model.DB.ExecContext(
+		ctx,
+		query,
+		transaction.Amount,
+		transaction.Currency,
+		transaction.LastFour,
+		transaction.BankReturnCode,
+		transaction.TransactionStatusID,
+		time.Now(),
+		time.Now(),
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Models for the postgres db
 
 type Widget struct {
@@ -130,6 +181,7 @@ type Order struct {
 	ID            int       `json:"id"`
 	WidgetId      int       `json:"widgetId"`
 	TransactionId string    `json:"transactionId"`
+	CustomerID    int       `json:"customerID"`
 	StatusId      int       `json:"statusId"`
 	Quantity      int       `json:"quantity"`
 	Amount        int       `json:"amount"`
@@ -158,6 +210,8 @@ type Transaction struct {
 	LastFour            string    `json:"lastFour"`
 	BankReturnCode      string    `json:"bankReturnCode"`
 	TransactionStatusID int       `json:"transactionStatusId"`
+	ExpiryMonth         int       `json:"expiryMonth"`
+	ExpiryYear          int       `json:"expiryYear"`
 	CreatedAt           time.Time `json:"-"`
 	UpdatedAt           time.Time `json:"-"`
 }
@@ -168,6 +222,15 @@ type User struct {
 	LastName  string    `json:"lastName"`
 	Email     string    `json:"email"`
 	Password  string    `json:"password"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+}
+
+type Customer struct {
+	ID        int       `json:"id"`
+	FirstName string    `json:"firstName"`
+	LastName  string    `json:"lastName"`
+	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
 }

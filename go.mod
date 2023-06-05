@@ -11,6 +11,7 @@ require (
 )
 
 require (
+	github.com/alexedwards/scs/v2 v2.5.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect

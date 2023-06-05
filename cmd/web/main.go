@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/AnonymFromInternet/Purchases/internal/driver"
 	"github.com/AnonymFromInternet/Purchases/internal/models"
+	"github.com/alexedwards/scs/v2"
 	"html/template"
 	"log"
 	"net/http"
@@ -17,6 +18,8 @@ import (
 
 const version = "1.0.0"
 const cssVersion = "1"
+
+var SessionManager *scs.SessionManager
 
 type config struct {
 	port int
@@ -34,12 +37,13 @@ type config struct {
 }
 
 type application struct {
-	config        config
-	infoLog       *log.Logger
-	errorLog      *log.Logger
-	templateCache map[string]*template.Template
-	version       string
-	DB            models.DBModel
+	config         config
+	infoLog        *log.Logger
+	errorLog       *log.Logger
+	templateCache  map[string]*template.Template
+	version        string
+	DB             models.DBModel
+	SessionManager *scs.SessionManager
 }
 
 func (application *application) serve() error {
@@ -94,15 +98,19 @@ func main() {
 		}
 	}(dbConn)
 
+	SessionManager = scs.New()
+	SessionManager.Lifetime = 24 * time.Hour
+
 	templateCache := make(map[string]*template.Template)
 
 	application := &application{
-		config:        config,
-		infoLog:       infoLog,
-		errorLog:      errorLog,
-		templateCache: templateCache,
-		version:       version,
-		DB:            models.DBModel{DB: dbConn},
+		config:         config,
+		infoLog:        infoLog,
+		errorLog:       errorLog,
+		templateCache:  templateCache,
+		version:        version,
+		DB:             models.DBModel{DB: dbConn},
+		SessionManager: SessionManager,
 	}
 
 	err = application.serve()
