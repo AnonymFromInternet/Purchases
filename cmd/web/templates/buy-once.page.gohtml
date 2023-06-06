@@ -27,22 +27,6 @@
             novalidate="novalidate"
     >
 
-        <label
-                for="amount"
-                class="form-label"
-        >
-            Amount
-        </label>
-
-        <input
-                name="amount"
-                id="amount"
-                type="number"
-                required
-                autocomplete="amount-new"
-                class="form-control"
-        >
-
         <div class="mb-3">
             <label
                     for="first_name"
@@ -132,6 +116,7 @@
         <input type="hidden" name="payment-currency" id="payment_currency">
 
         <input type="hidden" name="widgetId" id="widget_id" value="{{$widget.ID}}">
+        <input type="hidden" name="amount" id="amount" value="{{$widget.Price}}">
     </form>
 {{end}}
 

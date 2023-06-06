@@ -10,11 +10,7 @@
         const processing = document.getElementById('processing_payment')
 
         function onChargeCard() {
-            console.log('onChargeCard()')
             let form = document.getElementById('charge_form')
-
-            let test = document.getElementById('amount')
-            console.log('value :', test.value)
 
             if (!form.checkValidity()) {
                 this.event.preventDefault()
@@ -28,7 +24,6 @@
         }
 
         function postPaymentIntent() {
-            console.log('postPaymentIntent()')
             let amountToCharge = String(parseFloat(document.getElementById('amount').value) * 100)
 
             let payload = {
@@ -56,7 +51,7 @@
                             payment_method: {
                                 card: card,
                                 billing_details: {
-                                    name: document.getElementById('cardholder_name').value
+                                    name: document.getElementById('first_name').value
                                 },
                             }
                         }).then(result => {
