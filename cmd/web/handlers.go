@@ -30,8 +30,6 @@ func (application *application) handlerGetMainPage(w http.ResponseWriter, r *htt
 }
 
 func (application *application) handlerPostPaymentSucceeded(w http.ResponseWriter, r *http.Request) {
-	var err error
-
 	tmplData := application.getTemplateData(r)
 	customerID := application.saveCustomerGetCustomerID(tmplData.FirstName, tmplData.LastName, tmplData.Email)
 
@@ -67,16 +65,23 @@ func (application *application) handlerPostPaymentSucceeded(w http.ResponseWrite
 	data := make(map[string]interface{})
 	data["tmplData"] = tmplData
 
-	err = application.renderTemplate(w, r, "payment-succeeded", &templateData{
-		Data: data,
+	application.SessionManager.Put(r.Context(), "receipt", data)
+	http.Redirect(w, r, "/receipt", http.StatusSeeOther)
+}
+
+func (application *application) handlerGetReceipt(w http.ResponseWriter, r *http.Request) {
+	dataFromSession := application.SessionManager.Get(r.Context(), "receipt").(map[string]interface{})
+
+	application.SessionManager.Put(r.Context(), "receipt", nil)
+
+	err := application.renderTemplate(w, r, "payment-succeeded", &templateData{
+		Data: dataFromSession,
 	})
 	if err != nil {
 		application.errorLog.Println(err)
 
 		return
 	}
-
-	// TODO: here should be redirect after charging or simple render new template?
 }
 
 func (application *application) saveCustomerGetCustomerID(firstName, lastName, email string) int {

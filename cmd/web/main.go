@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/gob"
 	"flag"
 	"fmt"
 	"github.com/AnonymFromInternet/Purchases/internal/driver"
@@ -82,6 +83,9 @@ func setAndParseFlags(config *config) {
 }
 
 func main() {
+	gob.Register(models.TemplateData{})
+	gob.Register(map[string]interface{}{})
+
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
