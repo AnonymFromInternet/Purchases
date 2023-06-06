@@ -137,33 +137,6 @@ func (model *DBModel) InsertCustomerGetCustomerID(customer Customer) (int, error
 	return int(id), nil
 }
 
-func (model *DBModel) InsertTransaction(transaction Transaction) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	const query = `
-		INSERT into transactions
-			(amount, currency, last_fout, bank_return_code, transaction_status_id, created_at, updated_at)
-		values($1, $2, $3, $4, $5, $6, $7)
-	`
-	_, err := model.DB.ExecContext(
-		ctx,
-		query,
-		transaction.Amount,
-		transaction.Currency,
-		transaction.LastFour,
-		transaction.BankReturnCode,
-		transaction.TransactionStatusID,
-		time.Now(),
-		time.Now(),
-	)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Models for the postgres db
 
 type Widget struct {
@@ -180,7 +153,7 @@ type Widget struct {
 type Order struct {
 	ID            int       `json:"id"`
 	WidgetId      int       `json:"widgetId"`
-	TransactionId string    `json:"transactionId"`
+	TransactionId int       `json:"transactionId"`
 	CustomerID    int       `json:"customerID"`
 	StatusId      int       `json:"statusId"`
 	Quantity      int       `json:"quantity"`
@@ -233,4 +206,19 @@ type Customer struct {
 	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
+}
+
+type TemplateData struct {
+	Email           string
+	FirstName       string
+	LastName        string
+	PaymentMethod   string
+	PaymentIntent   string
+	PaymentAmount   int
+	PaymentCurrency string
+	LastFour        string
+	ExpiryMonth     uint64
+	ExpiryYear      uint64
+	BankReturnCode  string
+	WidgetId        int
 }

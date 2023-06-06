@@ -2,9 +2,13 @@ package main
 
 import (
 	"github.com/AnonymFromInternet/Purchases/internal/cards"
+	"github.com/AnonymFromInternet/Purchases/internal/models"
+	"github.com/AnonymFromInternet/Purchases/internal/status"
+	"github.com/AnonymFromInternet/Purchases/internal/transactionStatus"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func (application *application) handlerGetVirtualTerminal(w http.ResponseWriter, r *http.Request) {
@@ -28,32 +32,82 @@ func (application *application) handlerGetMainPage(w http.ResponseWriter, r *htt
 func (application *application) handlerPostPaymentSucceeded(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	err = r.ParseForm()
-	if err != nil {
-		application.errorLog.Println(err)
-
-		return
+	tmplData := application.getTemplateData(r)
+	customerID := application.saveCustomerGetCustomerID(tmplData.FirstName, tmplData.LastName, tmplData.Email)
+	transaction := models.Transaction{
+		Amount:              tmplData.PaymentAmount,
+		Currency:            tmplData.PaymentCurrency,
+		LastFour:            tmplData.LastFour,
+		BankReturnCode:      tmplData.BankReturnCode,
+		TransactionStatusID: transactionStatus.Cleared,
+		ExpiryMonth:         int(tmplData.ExpiryMonth),
+		ExpiryYear:          int(tmplData.ExpiryYear),
+		CreatedAt:           time.Now(),
+		UpdatedAt:           time.Now(),
 	}
 
-	// create a new customer
+	transactionID := application.saveTransactionGetTransactionID(transaction)
 
-	// create a new order
+	order := models.Order{
+		WidgetId:      tmplData.WidgetId,
+		TransactionId: transactionID,
+		CustomerID:    customerID,
+		StatusId:      status.Cleared,
+		Quantity:      1,
+		Amount:        tmplData.PaymentAmount,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
 
-	// create a new transaction
-
-	tmplData := application.getTemplateData(r)
+	application.saveOrder(order)
 
 	// redirect after charging
+	data := make(map[string]interface{})
+	data["tmplData"] = tmplData
 
 	err = application.renderTemplate(w, r, "payment-succeeded", &templateData{
-		Data: tmplData,
+		Data: data,
 	})
 	if err != nil {
 		application.errorLog.Println(err)
 
 		return
 	}
+}
 
+func (application *application) saveCustomerGetCustomerID(firstName, lastName, email string) int {
+	customer := models.Customer{
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	customerID, err := application.DB.InsertCustomerGetCustomerID(customer)
+	if err != nil {
+		application.errorLog.Println("cannot get customer id", err)
+
+		return 0
+	}
+
+	return customerID
+}
+
+func (application *application) saveTransactionGetTransactionID(transaction models.Transaction) int {
+	transactionID, err := application.DB.InsertTransactionGetTransactionID(transaction)
+	if err != nil {
+		application.errorLog.Println("cannot get transaction id", err)
+	}
+
+	return transactionID
+}
+
+func (application *application) saveOrder(order models.Order) {
+	_, err := application.DB.InsertOrderGetOrderID(order)
+	if err != nil {
+		application.errorLog.Println("cannot get transaction id", err)
+	}
 }
 
 func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http.Request) {
@@ -82,26 +136,34 @@ func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http
 	}
 }
 
-func (application *application) getTemplateData(r *http.Request) map[string]interface{} {
+func (application *application) getTemplateData(r *http.Request) models.TemplateData {
+	var tmplData models.TemplateData
 	err := r.ParseForm()
 	if err != nil {
 		application.errorLog.Println("cannot parse a form", err)
 
-		return nil
+		return tmplData
 	}
 
 	email := r.Form.Get("email")
-	cardHolderName := r.Form.Get("cardholder-name")
+	firstName := r.Form.Get("first-name")
+	lastName := r.Form.Get("last-name")
 	paymentMethod := r.Form.Get("payment-method")
 	paymentIntent := r.Form.Get("payment-intent")
 	paymentAmount := r.Form.Get("payment-amount")
 	paymentCurrency := r.Form.Get("payment-currency")
+	widgetId, err := strconv.Atoi(r.Form.Get("widget_id"))
+	if err != nil {
+		application.errorLog.Println("cannot convert widget id into int", err)
+
+		return tmplData
+	}
 
 	paymentAmountAsInt, err := strconv.Atoi(paymentAmount)
 	if err != nil {
 		application.errorLog.Println(err)
 
-		return nil
+		return tmplData
 	}
 
 	card := cards.Card{
@@ -113,31 +175,34 @@ func (application *application) getTemplateData(r *http.Request) map[string]inte
 	if err != nil {
 		application.errorLog.Println(err)
 
-		return nil
+		return tmplData
 	}
 
 	pm, err := card.GetPaymentMethod(paymentMethod)
 	if err != nil {
 		application.errorLog.Println(err)
 
-		return nil
+		return tmplData
 	}
 
 	lastFour := pm.Card.Last4
 	expiryMonth := pm.Card.ExpMonth
 	expiryYear := pm.Card.ExpYear
 
-	data := make(map[string]interface{})
-	data["email"] = email
-	data["cardholderName"] = cardHolderName
-	data["paymentMethod"] = paymentMethod
-	data["paymentIntent"] = paymentIntent
-	data["paymentAmount"] = paymentAmountAsInt / 100
-	data["paymentCurrency"] = paymentCurrency
-	data["lastFour"] = lastFour
-	data["expiryMonth"] = expiryMonth
-	data["expiryYear"] = expiryYear
-	data["bankReturnCode"] = pi.Charges.Data[0].ID
+	tmplData = models.TemplateData{
+		Email:           email,
+		FirstName:       firstName,
+		LastName:        lastName,
+		PaymentMethod:   paymentMethod,
+		PaymentIntent:   paymentCurrency,
+		PaymentAmount:   paymentAmountAsInt,
+		PaymentCurrency: paymentCurrency,
+		LastFour:        lastFour,
+		ExpiryMonth:     expiryMonth,
+		ExpiryYear:      expiryYear,
+		BankReturnCode:  pi.Charges.Data[0].ID,
+		WidgetId:        widgetId,
+	}
 
-	return data
+	return tmplData
 }

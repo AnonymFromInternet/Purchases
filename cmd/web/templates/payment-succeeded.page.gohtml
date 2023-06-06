@@ -5,18 +5,20 @@
 {{end}}
 
 {{define "content"}}
+    {{$tmplData := index .Data "tmplData"}}
+
     <h2 class="mt-5 text-center text-success">Payment Succeeded</h2>
 
     <hr>
 
-    <p>Payment Intent : {{index .Data "paymentIntent"}}</p>
-    <p>Cardholder Name : {{index .Data "cardholderName"}}</p>
-    <p>Email : {{index .Data "email"}}</p>
-    <p>Payment Method : {{index .Data "paymentMethod"}}</p>
-    <p>Amount : {{index .Data "paymentAmount"}}</p>
-    <p>Currency : {{index .Data "paymentCurrency"}}</p>
+    <p>Payment Intent : {{$tmplData.paymentIntent}}</p>
+    <p>Cardholder Name : {{$tmplData.cardholderName}}</p>
+    <p>Email : {{$tmplData.email}}</p>
+    <p>Payment Method : {{$tmplData.paymentMethod}}</p>
+    <p>Amount : {{$tmplData.paymentAmount}}</p>
+    <p>Currency : {{$tmplData.paymentCurrency}}</p>
 
-    <p>Last four Card numbers: {{index .Data "lastFour"}}</p>
-    <p>Expr Date : {{index .Data "expiryMonth"}}/{{index .Data "expiryYear"}}</p>
-    <p>Bank returned Code : {{index .Data "bankReturnCode"}}</p>
+    <p>Last four Card numbers: {{$tmplData.lastFour}}</p>
+    <p>Expr Date : {{$tmplData.expiryMonth}}/{{$tmplData.expiryYear}}</p>
+    <p>Bank returned Code : {{$tmplData.bankReturnCode}}</p>
 {{end}}

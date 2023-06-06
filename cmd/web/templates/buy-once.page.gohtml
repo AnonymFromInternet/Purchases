@@ -29,18 +29,36 @@
 
         <div class="mb-3">
             <label
-                    for="cardholder_name"
+                    for="first_name"
                     class="form-label"
             >
-                Cardholder Name
+                First Name
             </label>
 
             <input
-                    name="cardholder-name"
-                    id="cardholder_name"
+                    name="first-name"
+                    id="first_name"
                     type="text"
                     required
-                    autocomplete="cardholder-name-new"
+                    autocomplete="first-name-new"
+                    class="form-control"
+            >
+        </div>
+
+        <div class="mb-3">
+            <label
+                    for="last_name"
+                    class="form-label"
+            >
+                Last Name
+            </label>
+
+            <input
+                    name="last-name"
+                    id="last_name"
+                    type="text"
+                    required
+                    autocomplete="last-name-new"
                     class="form-control"
             >
         </div>
@@ -97,7 +115,7 @@
         <input type="hidden" name="payment-amount" id="payment_amount">
         <input type="hidden" name="payment-currency" id="payment_currency">
 
-        <input type="hidden" name="product_id" id="widget_id" value="{{$widget.ID}}">
+        <input type="hidden" name="widget_id" id="widget_id" value="{{$widget.ID}}">
         <input type="hidden" name="price" id="price" value="{{$widget.Price}}">
     </form>
 {{end}}
