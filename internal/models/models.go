@@ -51,8 +51,9 @@ func (model *DBModel) InsertTransactionGetTransactionID(transaction Transaction)
 
 	const query = `
 		INSERT into transactions
-			(amount, currency, last_four, bank_return_code, transaction_status_id, created_at, updated_at)
-		values($1, $2, $3, $4, $5, $6, $7)
+			(amount, currency, last_four, bank_return_code, transaction_status_id, created_at, updated_at, expiry_month,
+			 expiry_year, payment_intent, payment_method)
+		values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		returning id
 	`
 
@@ -66,6 +67,10 @@ func (model *DBModel) InsertTransactionGetTransactionID(transaction Transaction)
 		transaction.TransactionStatusID,
 		time.Now(),
 		time.Now(),
+		transaction.ExpiryMonth,
+		transaction.ExpiryYear,
+		transaction.PaymentIntent,
+		transaction.PaymentMethod,
 	)
 
 	var transactionId int
@@ -183,6 +188,8 @@ type Transaction struct {
 	Currency            string    `json:"currency"`
 	LastFour            string    `json:"lastFour"`
 	BankReturnCode      string    `json:"bankReturnCode"`
+	PaymentIntent       string    `json:"paymentIntent"`
+	PaymentMethod       string    `json:"paymentMethod"`
 	TransactionStatusID int       `json:"transactionStatusId"`
 	ExpiryMonth         int       `json:"expiryMonth"`
 	ExpiryYear          int       `json:"expiryYear"`

@@ -43,6 +43,8 @@ func (application *application) handlerPostPaymentSucceeded(w http.ResponseWrite
 		TransactionStatusID: transactionStatus.Cleared,
 		ExpiryMonth:         int(tmplData.ExpiryMonth),
 		ExpiryYear:          int(tmplData.ExpiryYear),
+		PaymentIntent:       tmplData.PaymentIntent,
+		PaymentMethod:       tmplData.PaymentMethod,
 		CreatedAt:           time.Now(),
 		UpdatedAt:           time.Now(),
 	}
@@ -74,7 +76,7 @@ func (application *application) handlerPostPaymentSucceeded(w http.ResponseWrite
 		return
 	}
 
-	// TODO: here should be redirect after charging?
+	// TODO: here should be redirect after charging or simple render new template?
 }
 
 func (application *application) saveCustomerGetCustomerID(firstName, lastName, email string) int {
