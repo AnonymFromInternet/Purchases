@@ -70,12 +70,14 @@ func (application *application) handlerPostPaymentSucceeded(w http.ResponseWrite
 }
 
 func (application *application) handlerGetReceipt(w http.ResponseWriter, r *http.Request) {
-	dataFromSession := application.SessionManager.Get(r.Context(), "receipt").(map[string]interface{})
+	sessionData := application.SessionManager.Get(r.Context(), "receipt").(models.TemplateData)
+	data := make(map[string]interface{})
+	data["tmplData"] = sessionData
 
 	application.SessionManager.Put(r.Context(), "receipt", nil)
 
 	err := application.renderTemplate(w, r, "payment-succeeded", &templateData{
-		Data: dataFromSession,
+		Data: data,
 	})
 	if err != nil {
 		application.errorLog.Println(err)
@@ -147,6 +149,7 @@ func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http
 
 func (application *application) getTemplateData(r *http.Request) models.TemplateData {
 	var tmplData models.TemplateData
+
 	err := r.ParseForm()
 	if err != nil {
 		application.errorLog.Println("cannot parse a form", err)
@@ -161,6 +164,10 @@ func (application *application) getTemplateData(r *http.Request) models.Template
 	paymentIntent := r.Form.Get("payment-intent")
 	paymentAmount := r.Form.Get("payment-amount")
 	paymentCurrency := r.Form.Get("payment-currency")
+
+	// TODO: Надо будет поменять это на что то другое, так как будут проблемы на странице виртаул терминал
+	// TODO: Там нет такого элемента на странице
+	// TODO: Но для чего вообще используется страница virtual terminal?
 
 	widgetId, err := strconv.Atoi(r.Form.Get("widgetId"))
 	if err != nil {
