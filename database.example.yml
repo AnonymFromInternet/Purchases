@@ -1,0 +1,7 @@
+development:
+  dialect: postgres
+  database: db_name_should_be_here
+  user: username_should_be_here
+  password: password_should_be_here
+  host: 127.0.0.1
+  pool: 5
