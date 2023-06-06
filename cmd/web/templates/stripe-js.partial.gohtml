@@ -55,7 +55,6 @@
                                 },
                             }
                         }).then(result => {
-                            console.log('result :', result)
                             if (result.error) {
                                 showCardError(result.error.message)
                                 showPayButton()
@@ -111,10 +110,8 @@
         }
 
         function hidePayButton() {
-            console.log('hidePayButton')
             payButton.classList.add('d-none')
             processing.classList.remove('d-none')
-            console.log('hidePayButton end')
         }
 
         // stripe connection to get settings for html element

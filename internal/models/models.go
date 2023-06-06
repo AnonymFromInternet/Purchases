@@ -51,11 +51,12 @@ func (model *DBModel) InsertTransactionGetTransactionID(transaction Transaction)
 
 	const query = `
 		INSERT into transactions
-			(amount, currency, last_four, backend_return_code, transaction_status_id, created_at, updated_at)
+			(amount, currency, last_four, bank_return_code, transaction_status_id, created_at, updated_at)
 		values($1, $2, $3, $4, $5, $6, $7)
+		returning id
 	`
 
-	result, err := model.DB.ExecContext(
+	row := model.DB.QueryRowContext(
 		ctx,
 		query,
 		transaction.Amount,
@@ -66,16 +67,15 @@ func (model *DBModel) InsertTransactionGetTransactionID(transaction Transaction)
 		time.Now(),
 		time.Now(),
 	)
+
+	var transactionId int
+
+	err := row.Scan(&transactionId)
 	if err != nil {
 		return 0, err
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-
-	return int(id), nil
+	return transactionId, nil
 
 }
 
@@ -85,11 +85,12 @@ func (model *DBModel) InsertOrderGetOrderID(order Order) (int, error) {
 
 	const query = `
 		INSERT into orders
-			(widget_id, transaction_id, status_id, quantity, amount, created_at, updated_at)
-		values($1, $2, $3, $4, $5, $6, $7)
+			(widget_id, transaction_id, status_id, quantity, amount, created_at, updated_at, customer_id)
+		values($1, $2, $3, $4, $5, $6, $7, $8)
+		returning id
 	`
 
-	result, err := model.DB.ExecContext(
+	row := model.DB.QueryRowContext(
 		ctx,
 		query,
 		order.WidgetId,
@@ -99,17 +100,17 @@ func (model *DBModel) InsertOrderGetOrderID(order Order) (int, error) {
 		order.Amount,
 		time.Now(),
 		time.Now(),
+		order.CustomerID,
 	)
+
+	var orderId int
+
+	err := row.Scan(&orderId)
 	if err != nil {
 		return 0, err
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-
-	return int(id), nil
+	return orderId, nil
 
 }
 
@@ -121,20 +122,20 @@ func (model *DBModel) InsertCustomerGetCustomerID(customer Customer) (int, error
 		INSERT into customers
 			(first_name, last_name, email, created_at, updated_at)
 		values($1, $2, $3, $4, $5)
+		returning id
 	`
-	result, err := model.DB.ExecContext(ctx, query,
+	var customerId int
+
+	row := model.DB.QueryRowContext(ctx, query,
 		customer.FirstName, customer.LastName, customer.Email, time.Now(), time.Now(),
 	)
+
+	err := row.Scan(&customerId)
 	if err != nil {
 		return 0, err
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-
-	return int(id), nil
+	return customerId, nil
 }
 
 // Models for the postgres db

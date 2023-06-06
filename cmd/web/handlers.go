@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/AnonymFromInternet/Purchases/internal/cards"
 	"github.com/AnonymFromInternet/Purchases/internal/models"
 	"github.com/AnonymFromInternet/Purchases/internal/status"
@@ -35,6 +34,7 @@ func (application *application) handlerPostPaymentSucceeded(w http.ResponseWrite
 
 	tmplData := application.getTemplateData(r)
 	customerID := application.saveCustomerGetCustomerID(tmplData.FirstName, tmplData.LastName, tmplData.Email)
+
 	transaction := models.Transaction{
 		Amount:              tmplData.PaymentAmount,
 		Currency:            tmplData.PaymentCurrency,
@@ -60,9 +60,8 @@ func (application *application) handlerPostPaymentSucceeded(w http.ResponseWrite
 		UpdatedAt:     time.Now(),
 	}
 
-	application.saveOrder(order)
+	application.saveOrderGetOrderID(order)
 
-	// redirect after charging
 	data := make(map[string]interface{})
 	data["tmplData"] = tmplData
 
@@ -74,6 +73,8 @@ func (application *application) handlerPostPaymentSucceeded(w http.ResponseWrite
 
 		return
 	}
+
+	// TODO: here should be redirect after charging?
 }
 
 func (application *application) saveCustomerGetCustomerID(firstName, lastName, email string) int {
@@ -104,7 +105,7 @@ func (application *application) saveTransactionGetTransactionID(transaction mode
 	return transactionID
 }
 
-func (application *application) saveOrder(order models.Order) {
+func (application *application) saveOrderGetOrderID(order models.Order) {
 	_, err := application.DB.InsertOrderGetOrderID(order)
 	if err != nil {
 		application.errorLog.Println("cannot get transaction id", err)
@@ -130,8 +131,6 @@ func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http
 
 	data := make(map[string]interface{})
 	data["widget"] = widget
-
-	fmt.Println("widget price is :", widget.Price)
 
 	err = application.renderTemplate(w, r, "buy-once", &templateData{Data: data}, "stripe-js")
 	if err != nil {
