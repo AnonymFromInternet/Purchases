@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/AnonymFromInternet/Purchases/internal/cards"
 	"github.com/go-chi/chi/v5"
 	"net/http"
@@ -42,6 +43,7 @@ func (application *application) handlerGetWidgetById(w http.ResponseWriter, r *h
 }
 
 func (application *application) handlerPostPaymentIntent(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("handlerPostPaymentIntent()")
 	var err error
 	var payload stripePayload
 

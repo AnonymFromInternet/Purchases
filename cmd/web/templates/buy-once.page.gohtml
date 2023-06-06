@@ -15,7 +15,7 @@
     <img src="../../../static/widget.png" alt="widget" class="img-fluid rounded mx-auto d-block"/>
 
     <h2 class="text-center text-success">{{$widget.Name}}</h2>
-    <h2 class="text-center text-success" id="price_h2">Price: {{getConvertedPrice $widget.Price}}</h2>
+    <h2 class="text-center text-success">Price: {{getConvertedPrice $widget.Price}}</h2>
 
     <form
             action="/payment-succeed"
@@ -26,6 +26,22 @@
             autocomplete="off"
             novalidate="novalidate"
     >
+
+        <label
+                for="amount"
+                class="form-label"
+        >
+            Amount
+        </label>
+
+        <input
+                name="amount"
+                id="amount"
+                type="number"
+                required
+                autocomplete="amount-new"
+                class="form-control"
+        >
 
         <div class="mb-3">
             <label
@@ -115,8 +131,7 @@
         <input type="hidden" name="payment-amount" id="payment_amount">
         <input type="hidden" name="payment-currency" id="payment_currency">
 
-        <input type="hidden" name="widget_id" id="widget_id" value="{{$widget.ID}}">
-        <input type="hidden" name="price" id="price" value="{{$widget.Price}}">
+        <input type="hidden" name="widgetId" id="widget_id" value="{{$widget.ID}}">
     </form>
 {{end}}
 

@@ -118,7 +118,7 @@ func (model *DBModel) InsertCustomerGetCustomerID(customer Customer) (int, error
 	defer cancel()
 
 	const query = `
-		INSERT into customres
+		INSERT into customers
 			(first_name, last_name, email, created_at, updated_at)
 		values($1, $2, $3, $4, $5)
 	`

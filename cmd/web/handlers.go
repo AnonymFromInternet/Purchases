@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/AnonymFromInternet/Purchases/internal/cards"
 	"github.com/AnonymFromInternet/Purchases/internal/models"
 	"github.com/AnonymFromInternet/Purchases/internal/status"
@@ -130,6 +131,8 @@ func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http
 	data := make(map[string]interface{})
 	data["widget"] = widget
 
+	fmt.Println("widget price is :", widget.Price)
+
 	err = application.renderTemplate(w, r, "buy-once", &templateData{Data: data}, "stripe-js")
 	if err != nil {
 		application.errorLog.Println(err)
@@ -152,7 +155,8 @@ func (application *application) getTemplateData(r *http.Request) models.Template
 	paymentIntent := r.Form.Get("payment-intent")
 	paymentAmount := r.Form.Get("payment-amount")
 	paymentCurrency := r.Form.Get("payment-currency")
-	widgetId, err := strconv.Atoi(r.Form.Get("widget_id"))
+
+	widgetId, err := strconv.Atoi(r.Form.Get("widgetId"))
 	if err != nil {
 		application.errorLog.Println("cannot convert widget id into int", err)
 

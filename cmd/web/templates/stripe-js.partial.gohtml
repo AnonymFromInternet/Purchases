@@ -10,7 +10,11 @@
         const processing = document.getElementById('processing_payment')
 
         function onChargeCard() {
+            console.log('onChargeCard()')
             let form = document.getElementById('charge_form')
+
+            let test = document.getElementById('amount')
+            console.log('value :', test.value)
 
             if (!form.checkValidity()) {
                 this.event.preventDefault()
@@ -19,12 +23,14 @@
             } else {
                 form.classList.add('was-validated')
                 hidePayButton()
-                postPaymentIndent()
+                postPaymentIntent()
             }
         }
 
-        function postPaymentIndent() {
+        function postPaymentIntent() {
+            console.log('postPaymentIntent()')
             let amountToCharge = String(parseFloat(document.getElementById('amount').value) * 100)
+
             let payload = {
                 amount: amountToCharge,
                 currency: 'USD',
@@ -110,8 +116,10 @@
         }
 
         function hidePayButton() {
+            console.log('hidePayButton')
             payButton.classList.add('d-none')
             processing.classList.remove('d-none')
+            console.log('hidePayButton end')
         }
 
         // stripe connection to get settings for html element
