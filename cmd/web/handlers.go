@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/AnonymFromInternet/Purchases/internal/cards"
 	"github.com/AnonymFromInternet/Purchases/internal/models"
 	"github.com/AnonymFromInternet/Purchases/internal/status"
@@ -62,10 +63,7 @@ func (application *application) handlerPostPaymentSucceeded(w http.ResponseWrite
 
 	application.saveOrderGetOrderID(order)
 
-	data := make(map[string]interface{})
-	data["tmplData"] = tmplData
-
-	application.SessionManager.Put(r.Context(), "receipt", data)
+	application.SessionManager.Put(r.Context(), "receipt", tmplData)
 	http.Redirect(w, r, "/receipt", http.StatusSeeOther)
 }
 
@@ -165,9 +163,7 @@ func (application *application) getTemplateData(r *http.Request) models.Template
 	paymentAmount := r.Form.Get("payment-amount")
 	paymentCurrency := r.Form.Get("payment-currency")
 
-	// TODO: Надо будет поменять это на что то другое, так как будут проблемы на странице виртаул терминал
-	// TODO: Там нет такого элемента на странице
-	// TODO: Но для чего вообще используется страница virtual terminal?
+	fmt.Println("paymentAmount :", paymentAmount)
 
 	widgetId, err := strconv.Atoi(r.Form.Get("widgetId"))
 	if err != nil {
