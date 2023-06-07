@@ -216,7 +216,7 @@ type Customer struct {
 	UpdatedAt time.Time `json:"-"`
 }
 
-type TemplateData struct {
+type TransactionData struct {
 	Email           string
 	FirstName       string
 	LastName        string

@@ -83,7 +83,7 @@ func setAndParseFlags(config *config) {
 }
 
 func main() {
-	gob.Register(models.TemplateData{})
+	gob.Register(models.TransactionData{})
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)

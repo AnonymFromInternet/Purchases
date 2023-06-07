@@ -52,7 +52,7 @@ func (application *application) handlerPostPaymentIntent(w http.ResponseWriter, 
 		return
 	}
 
-	amount, err := strconv.Atoi(payload.Amount)
+	amount, err := strconv.ParseFloat(payload.Amount, 64)
 	if err != nil {
 		application.errorLog.Println("cannot convert amount into int", err)
 
@@ -65,7 +65,7 @@ func (application *application) handlerPostPaymentIntent(w http.ResponseWriter, 
 		Currency:  payload.Currency,
 	}
 
-	paymentIntent, errorMessage, err := card.ChargeCard(payload.Currency, amount)
+	paymentIntent, errorMessage, err := card.ChargeCard(payload.Currency, int(amount*100))
 	if err != nil {
 		application.errorLog.Println("cannot get paymentIntent from charge card function", err)
 

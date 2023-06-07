@@ -14,7 +14,7 @@
             <div class="alert alert-danger text-center d-none" id="card_messages"></div>
 
             <form
-                    action="/payment-succeed"
+                    action="/payment-succeed-virtual-terminal"
                     method="post"
                     name="charge-form"
                     id="charge_form"
@@ -46,7 +46,7 @@
                             for="first_name"
                             class="form-label"
                     >
-                        Cardholder Name
+                        First Name
                     </label>
 
                     <input
@@ -54,7 +54,25 @@
                             id="first_name"
                             type="text"
                             required
-                            autocomplete="cardholder-name-new"
+                            autocomplete="first-name-new"
+                            class="form-control"
+                    >
+                </div>
+
+                <div class="mb-3">
+                    <label
+                            for="last_name"
+                            class="form-label"
+                    >
+                        Last Name
+                    </label>
+
+                    <input
+                            name="last-name"
+                            id="first_name"
+                            type="text"
+                            required
+                            autocomplete="last-name-new"
                             class="form-control"
                     >
                 </div>

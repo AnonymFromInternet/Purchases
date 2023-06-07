@@ -30,8 +30,9 @@ func (application *application) handlerGetMainPage(w http.ResponseWriter, r *htt
 	}
 }
 
-func (application *application) handlerPostPaymentSucceeded(w http.ResponseWriter, r *http.Request) {
-	tmplData := application.getTemplateData(r)
+// handlerPostPaymentSucceededByOnce is called from html, and only after the answer comes from stripe
+func (application *application) handlerPostPaymentSucceededByOnce(w http.ResponseWriter, r *http.Request) {
+	tmplData := application.getTransactionData(r)
 	customerID := application.saveCustomerGetCustomerID(tmplData.FirstName, tmplData.LastName, tmplData.Email)
 
 	transaction := models.Transaction{
@@ -64,23 +65,39 @@ func (application *application) handlerPostPaymentSucceeded(w http.ResponseWrite
 	application.saveOrderGetOrderID(order)
 
 	application.SessionManager.Put(r.Context(), "receipt", tmplData)
-	http.Redirect(w, r, "/receipt", http.StatusSeeOther)
+	http.Redirect(w, r, "/receipt-buy-once", http.StatusSeeOther)
 }
 
-func (application *application) handlerGetReceipt(w http.ResponseWriter, r *http.Request) {
-	sessionData := application.SessionManager.Get(r.Context(), "receipt").(models.TemplateData)
+func (application *application) handlerGetReceiptAfterBuyOnce(w http.ResponseWriter, r *http.Request) {
+	sessionData := application.SessionManager.Get(r.Context(), "receipt").(models.TransactionData)
 	data := make(map[string]interface{})
 	data["tmplData"] = sessionData
 
 	application.SessionManager.Put(r.Context(), "receipt", nil)
 
-	err := application.renderTemplate(w, r, "payment-succeeded", &templateData{
+	err := application.renderTemplate(w, r, "payment-succeeded-buy-once", &templateData{
 		Data: data,
 	})
 	if err != nil {
 		application.errorLog.Println(err)
 
 		return
+	}
+}
+
+func (application *application) handlerPostPaymentSucceededVirtualTerminal(w http.ResponseWriter, r *http.Request) {
+	// Тут должен быть только сбор данных из формы, и взаимодействие с базой данных, а уже сам рендер в следующем методе после редиректа
+	formData := application.getFormData(r)
+
+	fmt.Println("formData :", formData)
+
+	http.Redirect(w, r, "/receipt-virtual-terminal", http.StatusSeeOther)
+}
+
+func (application *application) handlerGetReceiptAfterVirtualTerminal(w http.ResponseWriter, r *http.Request) {
+	err := application.renderTemplate(w, r, "payment-succeeded-virtual-terminal", nil)
+	if err != nil {
+		application.errorLog.Println("cannot render template with the name payment-succeeded-virtual-terminal", err)
 	}
 }
 
@@ -145,14 +162,74 @@ func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http
 	}
 }
 
-func (application *application) getTemplateData(r *http.Request) models.TemplateData {
-	var tmplData models.TemplateData
+func (application *application) getTransactionData(r *http.Request) models.TransactionData {
+	var transactionData models.TransactionData
 
 	err := r.ParseForm()
 	if err != nil {
 		application.errorLog.Println("cannot parse a form", err)
 
-		return tmplData
+		return transactionData
+	}
+
+	formData := application.getFormData(r)
+
+	widgetId, err := strconv.Atoi(r.Form.Get("widgetId"))
+	if err != nil {
+		application.errorLog.Println("cannot convert widget id into int", err)
+
+		return transactionData
+	}
+
+	card := cards.Card{
+		PublicKey: application.config.stripe.publicKey,
+		SecretKey: application.config.stripe.secretKey,
+	}
+
+	pi, err := card.RetrievePaymentIntent(formData.PaymentIntent)
+	if err != nil {
+		application.errorLog.Println(err)
+
+		return transactionData
+	}
+
+	pm, err := card.GetPaymentMethod(formData.PaymentMethod)
+	if err != nil {
+		application.errorLog.Println(err)
+
+		return transactionData
+	}
+
+	lastFour := pm.Card.Last4
+	expiryMonth := pm.Card.ExpMonth
+	expiryYear := pm.Card.ExpYear
+
+	transactionData = models.TransactionData{
+		Email:           formData.Email,
+		FirstName:       formData.FirstName,
+		LastName:        formData.LastName,
+		PaymentMethod:   formData.PaymentMethod,
+		PaymentIntent:   formData.PaymentIntent,
+		PaymentAmount:   formData.PaymentAmount,
+		PaymentCurrency: formData.PaymentCurrency,
+		LastFour:        lastFour,
+		ExpiryMonth:     expiryMonth,
+		ExpiryYear:      expiryYear,
+		BankReturnCode:  pi.Charges.Data[0].ID,
+		WidgetId:        widgetId,
+	}
+
+	return transactionData
+}
+
+func (application *application) getFormData(r *http.Request) models.TransactionData {
+	var formData models.TransactionData
+
+	err := r.ParseForm()
+	if err != nil {
+		application.errorLog.Println("cannot parse a form", err)
+
+		return formData
 	}
 
 	email := r.Form.Get("email")
@@ -163,59 +240,22 @@ func (application *application) getTemplateData(r *http.Request) models.Template
 	paymentAmount := r.Form.Get("payment-amount")
 	paymentCurrency := r.Form.Get("payment-currency")
 
-	fmt.Println("paymentAmount :", paymentAmount)
-
-	widgetId, err := strconv.Atoi(r.Form.Get("widgetId"))
-	if err != nil {
-		application.errorLog.Println("cannot convert widget id into int", err)
-
-		return tmplData
-	}
-
 	paymentAmountAsInt, err := strconv.Atoi(paymentAmount)
 	if err != nil {
 		application.errorLog.Println(err)
 
-		return tmplData
+		return formData
 	}
 
-	card := cards.Card{
-		PublicKey: application.config.stripe.publicKey,
-		SecretKey: application.config.stripe.secretKey,
-	}
-
-	pi, err := card.RetrievePaymentIntent(paymentIntent)
-	if err != nil {
-		application.errorLog.Println(err)
-
-		return tmplData
-	}
-
-	pm, err := card.GetPaymentMethod(paymentMethod)
-	if err != nil {
-		application.errorLog.Println(err)
-
-		return tmplData
-	}
-
-	lastFour := pm.Card.Last4
-	expiryMonth := pm.Card.ExpMonth
-	expiryYear := pm.Card.ExpYear
-
-	tmplData = models.TemplateData{
+	formData = models.TransactionData{
 		Email:           email,
 		FirstName:       firstName,
 		LastName:        lastName,
 		PaymentMethod:   paymentMethod,
-		PaymentIntent:   paymentCurrency,
+		PaymentIntent:   paymentIntent,
 		PaymentAmount:   paymentAmountAsInt,
 		PaymentCurrency: paymentCurrency,
-		LastFour:        lastFour,
-		ExpiryMonth:     expiryMonth,
-		ExpiryYear:      expiryYear,
-		BankReturnCode:  pi.Charges.Data[0].ID,
-		WidgetId:        widgetId,
 	}
 
-	return tmplData
+	return formData
 }
