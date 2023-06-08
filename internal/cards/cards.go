@@ -79,7 +79,9 @@ func (card *Card) CreateSubscription(customer *stripe.Customer, planID, email, l
 
 	subscriptionParams.AddMetadata("last_four", last4)
 	subscriptionParams.AddMetadata("card_type", cardType)
-	subscriptionParams.AddExpand("last_invoice")
+
+	// TODO: For some reasons it doesn't work
+	// subscriptionParams.AddExpand("last_invoice")
 
 	subscription, err := sub.New(subscriptionParams)
 	if err != nil {

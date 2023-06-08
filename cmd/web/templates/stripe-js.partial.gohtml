@@ -90,6 +90,10 @@
             processing.classList.add('d-none')
         }
 
+        function showLoadingSpinner() {
+            processing.classList.remove('d-none')
+        }
+
         function showCardError(error) {
             cardMessages.classList.add('alert-danger')
             cardMessages.classList.remove('alert-success')
@@ -110,8 +114,9 @@
         }
 
         function hidePayButton() {
+            console.log('hidePayButton()')
             payButton.classList.add('d-none')
-            processing.classList.remove('d-none')
+            // processing.classList.remove('d-none')
         }
 
         // stripe connection to get settings for html element

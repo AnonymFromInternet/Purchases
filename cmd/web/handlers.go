@@ -30,6 +30,15 @@ func (application *application) handlerGetMainPage(w http.ResponseWriter, r *htt
 	}
 }
 
+func (application *application) handlerPostPaymentSucceededGoldPlan(w http.ResponseWriter, r *http.Request) {
+	err := application.renderTemplate(w, r, "payment-succeeded-gold-plan", nil)
+	if err != nil {
+		application.errorLog.Println("cannot render template", err)
+
+		return
+	}
+}
+
 func (application *application) handlerGetReceiptAfterBuyOnce(w http.ResponseWriter, r *http.Request) {
 	sessionData := application.SessionManager.Get(r.Context(), "receipt").(models.TransactionData)
 	data := make(map[string]interface{})

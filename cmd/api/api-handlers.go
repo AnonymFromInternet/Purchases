@@ -60,7 +60,11 @@ func (application *application) handlerGetWidgetById(w http.ResponseWriter, r *h
 func (application *application) handlerPostCreateCustomerAndSubscribePlan(w http.ResponseWriter, r *http.Request) {
 	var payload stripePayload
 	var err error
+
+	// TODO: should make something with this variable
 	var subscription *stripe.Subscription
+
+	fmt.Println(subscription)
 
 	badResponse := jsonResponse{
 		Ok: false,
@@ -96,8 +100,6 @@ func (application *application) handlerPostCreateCustomerAndSubscribePlan(w http
 
 		return
 	}
-
-	fmt.Println("subscription :", subscription)
 
 	// if all is ok -> send ok response / else -> send error response
 	productId, err := strconv.Atoi(payload.ProductID)

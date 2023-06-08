@@ -19,6 +19,7 @@ func (application *application) routes() http.Handler {
 
 	mux.Post("/payment-succeed-buy-once", application.handlerPostPaymentSucceededByOnce)
 	mux.Post("/payment-succeed-virtual-terminal", application.handlerPostPaymentSucceededVirtualTerminal)
+	mux.Post("/payment-succeed-gold-plan", application.handlerPostPaymentSucceededGoldPlan)
 
 	fileServer := http.FileServer(http.Dir("static"))
 	mux.Handle("/static*", http.StripPrefix("/static", fileServer))
