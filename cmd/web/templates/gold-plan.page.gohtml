@@ -14,8 +14,6 @@
     <h2 class="text-center text-success">Price: {{getConvertedPrice $widget.Price}}</h2>
 
     <form
-            action="/payment-succeeded-gold-plan"
-            method="post"
             name="charge-form"
             id="charge_form"
             class="d-block needs-validation charge-form"
@@ -188,18 +186,18 @@
                 fetch("{{.Api}}/api/create-customer-and-subscribe-the-plan", requestOptions)
                     .then(response => response.json())
                     .then(data => {
-                        console.log('success')
-                        console.log('stripe :', stripe)
                         if (data.ok) {
                             hideLoadingSpinner()
                             showCardSuccessGoldPlan()
                         }
 
-                        // setting hidden inputs values
-                        // submitting form
+                        sessionStorage.setItem("firstName",  document.getElementById('first_name').value)
+                        sessionStorage.setItem("lastName", document.getElementById('last_name').value)
+                        sessionStorage.setItem("amount", "{{getConvertedPrice $widget.Price}}")
+                        sessionStorage.setItem("lastFour", result.paymentMethod.card.last4)
+
                         setTimeout(() => {
-                            let form = document.getElementById('charge_form')
-                            form.submit()
+                            location.href = "/receipt-gold-plan"
                         }, 1000)
                     })
             }

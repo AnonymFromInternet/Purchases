@@ -30,7 +30,7 @@ func (application *application) handlerGetMainPage(w http.ResponseWriter, r *htt
 	}
 }
 
-func (application *application) handlerPostPaymentSucceededGoldPlan(w http.ResponseWriter, r *http.Request) {
+func (application *application) handlerGetReceiptGoldPlan(w http.ResponseWriter, r *http.Request) {
 	err := application.renderTemplate(w, r, "payment-succeeded-gold-plan", nil)
 	if err != nil {
 		application.errorLog.Println("cannot render template", err)

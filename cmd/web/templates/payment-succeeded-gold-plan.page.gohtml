@@ -5,9 +5,28 @@
 {{end}}
 
 {{define "content"}}
-    <!-- {{$tmplData := index .Data "tmplData"}} -->
-
     <h2 class="mt-5 text-center text-success">Payment Succeeded in Gold Plan</h2>
 
     <hr>
+
+    <p>Customer Name :
+        <span id="first_name"></span> <span id="last_name"></span>
+    </p>
+
+    <p>Amount : <span id="amount"></span></p>
+
+    <p>Last Four : <span id="last_four"></span></p>
+{{end}}
+
+{{define "js"}}
+    <script>
+        (() => {
+            document.getElementById('first_name').innerHTML = sessionStorage.getItem("firstName")
+            document.getElementById('last_name').innerHTML = sessionStorage.getItem("lastName")
+            document.getElementById('amount').innerHTML = sessionStorage.getItem("amount")
+            document.getElementById('last_four').innerHTML = sessionStorage.getItem("lastFour")
+
+            sessionStorage.clear()
+        })();
+    </script>
 {{end}}
