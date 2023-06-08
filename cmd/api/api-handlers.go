@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/AnonymFromInternet/Purchases/internal/cards"
 	"github.com/go-chi/chi/v5"
 	"net/http"
@@ -57,13 +56,38 @@ func (application *application) handlerPostCreateCustomerAndSubscribePlan(w http
 		return
 	}
 
-	fmt.Println("payload :", payload)
+	card := cards.Card{
+		PublicKey: application.config.stripe.publicKey,
+		SecretKey: application.config.stripe.secretKey,
+		Currency:  payload.Currency,
+	}
+
+	newCustomer, errorMessage, err := card.CreateCustomer(payload.PaymentMethod, payload.Email)
+	if err != nil {
+		application.errorLog.Println(errorMessage)
+
+		return
+	}
+
+	subscriptionId, err := card.SubscribeToPlanGetSubscriptionId(newCustomer, payload.Plan, payload.Email, payload.LastFour, "")
+	if err != nil {
+		application.errorLog.Println("cannot subscribe to plan", err)
+
+		return
+	}
+
+	customerIdAsIn, err := strconv.Atoi(newCustomer.ID)
+	if err != nil {
+		application.errorLog.Println("cannot convert customer id into int", err)
+
+		return
+	}
 
 	response := jsonResponse{
 		Ok:      true,
-		Message: "Test message from new handler from api",
+		Message: message,
 		Content: "Test",
-		Id:      8,
+		Id:      subscriptionId,
 	}
 
 	application.convertToJsonAndSend(response, w)

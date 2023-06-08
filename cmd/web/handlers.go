@@ -215,7 +215,7 @@ func (application *application) getTransactionData(r *http.Request) models.Trans
 		return transactionData
 	}
 
-	pm, err := card.GetPaymentMethod(formData.PaymentMethod)
+	pm, err := card.CreatePaymentMethod(formData.PaymentMethod)
 	if err != nil {
 		application.errorLog.Println(err)
 
