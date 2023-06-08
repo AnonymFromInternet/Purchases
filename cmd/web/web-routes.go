@@ -15,6 +15,7 @@ func (application *application) routes() http.Handler {
 	mux.Get("/widget/{id}", application.handlerGetBuyOnce)
 	mux.Get("/receipt-buy-once", application.handlerGetReceiptAfterBuyOnce)
 	mux.Get("/receipt-virtual-terminal", application.handlerGetReceiptAfterVirtualTerminal)
+	mux.Get("/gold-plan", application.handlerGetGoldPlan)
 
 	mux.Post("/payment-succeed-buy-once", application.handlerPostPaymentSucceededByOnce)
 	mux.Post("/payment-succeed-virtual-terminal", application.handlerPostPaymentSucceededVirtualTerminal)

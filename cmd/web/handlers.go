@@ -30,6 +30,71 @@ func (application *application) handlerGetMainPage(w http.ResponseWriter, r *htt
 	}
 }
 
+func (application *application) handlerGetReceiptAfterBuyOnce(w http.ResponseWriter, r *http.Request) {
+	sessionData := application.SessionManager.Get(r.Context(), "receipt").(models.TransactionData)
+	data := make(map[string]interface{})
+	data["tmplData"] = sessionData
+
+	application.SessionManager.Put(r.Context(), "receipt", nil)
+
+	err := application.renderTemplate(w, r, "payment-succeeded-buy-once", &templateData{
+		Data: data,
+	})
+	if err != nil {
+		application.errorLog.Println(err)
+
+		return
+	}
+}
+
+func (application *application) handlerGetReceiptAfterVirtualTerminal(w http.ResponseWriter, r *http.Request) {
+	err := application.renderTemplate(w, r, "payment-succeeded-virtual-terminal", nil)
+	if err != nil {
+		application.errorLog.Println("cannot render template with the name payment-succeeded-virtual-terminal", err)
+	}
+}
+
+func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http.Request) {
+	idAsString := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idAsString)
+	if err != nil {
+		application.errorLog.Println("cannot convert widget id from url param into int", err)
+
+		return
+	}
+
+	widget, err := application.DB.GetWidgetBy(id)
+
+	if err != nil {
+		application.errorLog.Println("cannot get widget from db", err)
+
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["widget"] = widget
+
+	err = application.renderTemplate(w, r, "buy-once", &templateData{Data: data}, "stripe-js")
+	if err != nil {
+		application.errorLog.Println(err)
+	}
+}
+
+func (application *application) handlerGetGoldPlan(w http.ResponseWriter, r *http.Request) {
+	intMap := make(map[string]int)
+	intMap["planID"] = 1
+
+	err := application.renderTemplate(w, r, "gold-plan", &templateData{
+		IntMap: intMap,
+	})
+
+	if err != nil {
+		application.errorLog.Println("cannot render template", err)
+
+		return
+	}
+}
+
 // handlerPostPaymentSucceededByOnce is called from html, and only after the answer comes from stripe
 func (application *application) handlerPostPaymentSucceededByOnce(w http.ResponseWriter, r *http.Request) {
 	tmplData := application.getTransactionData(r)
@@ -68,23 +133,6 @@ func (application *application) handlerPostPaymentSucceededByOnce(w http.Respons
 	http.Redirect(w, r, "/receipt-buy-once", http.StatusSeeOther)
 }
 
-func (application *application) handlerGetReceiptAfterBuyOnce(w http.ResponseWriter, r *http.Request) {
-	sessionData := application.SessionManager.Get(r.Context(), "receipt").(models.TransactionData)
-	data := make(map[string]interface{})
-	data["tmplData"] = sessionData
-
-	application.SessionManager.Put(r.Context(), "receipt", nil)
-
-	err := application.renderTemplate(w, r, "payment-succeeded-buy-once", &templateData{
-		Data: data,
-	})
-	if err != nil {
-		application.errorLog.Println(err)
-
-		return
-	}
-}
-
 func (application *application) handlerPostPaymentSucceededVirtualTerminal(w http.ResponseWriter, r *http.Request) {
 	// Тут должен быть только сбор данных из формы, и взаимодействие с базой данных, а уже сам рендер в следующем методе после редиректа
 	formData := application.getFormData(r)
@@ -92,13 +140,6 @@ func (application *application) handlerPostPaymentSucceededVirtualTerminal(w htt
 	fmt.Println("formData :", formData)
 
 	http.Redirect(w, r, "/receipt-virtual-terminal", http.StatusSeeOther)
-}
-
-func (application *application) handlerGetReceiptAfterVirtualTerminal(w http.ResponseWriter, r *http.Request) {
-	err := application.renderTemplate(w, r, "payment-succeeded-virtual-terminal", nil)
-	if err != nil {
-		application.errorLog.Println("cannot render template with the name payment-succeeded-virtual-terminal", err)
-	}
 }
 
 func (application *application) saveCustomerGetCustomerID(firstName, lastName, email string) int {
@@ -133,32 +174,6 @@ func (application *application) saveOrderGetOrderID(order models.Order) {
 	_, err := application.DB.InsertOrderGetOrderID(order)
 	if err != nil {
 		application.errorLog.Println("cannot get transaction id", err)
-	}
-}
-
-func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http.Request) {
-	idAsString := chi.URLParam(r, "id")
-	id, err := strconv.Atoi(idAsString)
-	if err != nil {
-		application.errorLog.Println("cannot convert widget id from url param into int", err)
-
-		return
-	}
-
-	widget, err := application.DB.GetWidgetBy(id)
-
-	if err != nil {
-		application.errorLog.Println("cannot get widget from db", err)
-
-		return
-	}
-
-	data := make(map[string]interface{})
-	data["widget"] = widget
-
-	err = application.renderTemplate(w, r, "buy-once", &templateData{Data: data}, "stripe-js")
-	if err != nil {
-		application.errorLog.Println(err)
 	}
 }
 
