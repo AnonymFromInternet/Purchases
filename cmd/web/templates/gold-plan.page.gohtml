@@ -5,6 +5,117 @@
 {{end}}
 
 {{define "content"}}
-    <h2 class="mt-5 text-center text-success">Gold Plan</h2>
+    {{$widget := index .Data "widget"}}
+    <h2 class="text-center text-success">{{$widget.Name}}</h2>
+
     <hr>
+
+    <div class="alert alert-danger text-center d-none" id="card_messages"></div>
+    <h2 class="text-center text-success">Price: {{getConvertedPrice $widget.Price}}</h2>
+
+    <form
+            action="/payment-succeed-gold-plan"
+            method="post"
+            name="charge-form"
+            id="charge_form"
+            class="d-block needs-validation charge-form"
+            autocomplete="off"
+            novalidate="novalidate"
+    >
+
+        <div class="mb-3">
+            <label
+                    for="first_name"
+                    class="form-label"
+            >
+                First Name
+            </label>
+
+            <input
+                    name="first-name"
+                    id="first_name"
+                    type="text"
+                    required
+                    autocomplete="first-name-new"
+                    class="form-control"
+            >
+        </div>
+
+        <div class="mb-3">
+            <label
+                    for="last_name"
+                    class="form-label"
+            >
+                Last Name
+            </label>
+
+            <input
+                    name="last-name"
+                    id="last_name"
+                    type="text"
+                    required
+                    autocomplete="last-name-new"
+                    class="form-control"
+            >
+        </div>
+
+        <div class="mb-3">
+            <label
+                    for="email"
+                    class="form-label"
+            >
+                Email
+            </label>
+
+            <input
+                    name="email"
+                    id="email"
+                    type="text"
+                    required
+                    autocomplete="email-new"
+                    class="form-control"
+            >
+        </div>
+
+        <!-- stripe -->
+        <div class="mb-3">
+            <label
+                    for="card_element"
+                    class="form-label"
+            >
+                Credit Card
+            </label>
+
+            <div id="card_element" class="form-control"></div>
+
+            <div class="alert-danger text-center" id="card_errors" role="alert"></div>
+
+            <div class="alert-success text-center" id="card_success" role="alert"></div>
+        </div>
+
+        <hr>
+
+        <a href="javascript:void(0)" id="pay_button" class="btn btn-primary" onclick="onChargeCard()">Buy monthly subscription for $44</a>
+
+        <div
+                id="processing_payment"
+                class="text-center d-none"
+        >
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <input type="hidden" name="payment-intent" id="payment_intent">
+        <input type="hidden" name="payment-method" id="payment_method">
+        <input type="hidden" name="payment-amount" id="payment_amount">
+        <input type="hidden" name="payment-currency" id="payment_currency">
+
+        <input type="hidden" name="widgetId" id="widget_id" value="{{$widget.ID}}">
+        <input type="hidden" name="amount" id="amount" value="{{$widget.Price}}">
+    </form>
+{{end}}
+
+{{define "js"}}
+    {{template "stripe-js" .}}
 {{end}}

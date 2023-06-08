@@ -81,12 +81,19 @@ func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http
 }
 
 func (application *application) handlerGetGoldPlan(w http.ResponseWriter, r *http.Request) {
-	intMap := make(map[string]int)
-	intMap["planID"] = 1
+	widget, err := application.DB.GetWidgetBy(2)
+	if err != nil {
+		application.errorLog.Println("cannot get widget from database", err)
 
-	err := application.renderTemplate(w, r, "gold-plan", &templateData{
-		IntMap: intMap,
-	})
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["widget"] = widget
+
+	err = application.renderTemplate(w, r, "gold-plan", &templateData{
+		Data: data,
+	}, "stripe-js")
 
 	if err != nil {
 		application.errorLog.Println("cannot render template", err)

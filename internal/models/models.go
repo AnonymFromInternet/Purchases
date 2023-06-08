@@ -25,7 +25,7 @@ func (model *DBModel) GetWidgetBy(id int) (Widget, error) {
 	defer cancel()
 
 	const query = `
-		SELECT id, name, description, inventory_level, price, coalesce(image, ''),
+		SELECT id, name, description, inventory_level, price, coalesce(image, ''), is_recurring, plan_id,
 			created_at, updated_at
 		FROM widgets
 		WHERE id = $1
@@ -36,7 +36,7 @@ func (model *DBModel) GetWidgetBy(id int) (Widget, error) {
 	row := model.DB.QueryRowContext(ctx, query, id)
 	err := row.Scan(
 		&widget.ID, &widget.Name, &widget.Description, &widget.InventoryLevel, &widget.Price, &widget.Image,
-		&widget.CreatedAt, &widget.UpdatedAt,
+		&widget.IsRecurring, &widget.PlanId, &widget.CreatedAt, &widget.UpdatedAt,
 	)
 	if err != nil {
 		return widget, err
@@ -152,6 +152,8 @@ type Widget struct {
 	InventoryLevel int       `json:"inventoryLevel"`
 	Price          int       `json:"price"`
 	Image          string    `json:"image"`
+	IsRecurring    bool      `json:"isRecurring"`
+	PlanId         string    `json:"planId"`
 	CreatedAt      time.Time `json:"-"`
 	UpdatedAt      time.Time `json:"-"`
 }
