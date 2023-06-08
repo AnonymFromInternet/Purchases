@@ -39,6 +39,15 @@ func (application *application) handlerGetReceiptGoldPlan(w http.ResponseWriter,
 	}
 }
 
+func (application *application) handlerGetLoginPage(w http.ResponseWriter, r *http.Request) {
+	err := application.renderTemplate(w, r, "login", nil)
+	if err != nil {
+		application.errorLog.Println("cannot render login page")
+
+		return
+	}
+}
+
 func (application *application) handlerGetReceiptAfterBuyOnce(w http.ResponseWriter, r *http.Request) {
 	sessionData := application.SessionManager.Get(r.Context(), "receipt").(models.TransactionData)
 	data := make(map[string]interface{})
