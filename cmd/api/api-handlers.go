@@ -2,10 +2,16 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/AnonymFromInternet/Purchases/internal/cards"
+	"github.com/AnonymFromInternet/Purchases/internal/models"
+	"github.com/AnonymFromInternet/Purchases/internal/status"
+	"github.com/AnonymFromInternet/Purchases/internal/transactionStatus"
 	"github.com/go-chi/chi/v5"
+	"github.com/stripe/stripe-go/v72"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type stripePayload struct {
@@ -15,6 +21,12 @@ type stripePayload struct {
 	PaymentMethod string `json:"paymentMethod"`
 	Email         string `json:"email"`
 	LastFour      string `json:"lastFour"`
+	CardBrand     string `json:"cardBrand"`
+	ExpiryMonth   int    `json:"expiryMonth"`
+	ExpiryYear    int    `json:"expiryYear"`
+	ProductID     string `json:"productID"`
+	FirstName     string `json:"firstName"`
+	LastName      string `json:"lastName"`
 }
 
 type jsonResponse struct {
@@ -48,6 +60,11 @@ func (application *application) handlerGetWidgetById(w http.ResponseWriter, r *h
 func (application *application) handlerPostCreateCustomerAndSubscribePlan(w http.ResponseWriter, r *http.Request) {
 	var payload stripePayload
 	var err error
+	var subscription *stripe.Subscription
+
+	badResponse := jsonResponse{
+		Ok: false,
+	}
 
 	err = json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
@@ -65,32 +82,113 @@ func (application *application) handlerPostCreateCustomerAndSubscribePlan(w http
 	newCustomer, errorMessage, err := card.CreateCustomer(payload.PaymentMethod, payload.Email)
 	if err != nil {
 		application.errorLog.Println(errorMessage)
+		badResponse.Message = errorMessage
+		application.convertToJsonAndSend(badResponse, w)
 
 		return
 	}
 
-	subscriptionId, err := card.SubscribeToPlanGetSubscriptionId(newCustomer, payload.Plan, payload.Email, payload.LastFour, "")
+	subscription, errorMessage, err = card.CreateSubscription(newCustomer, payload.Plan, payload.Email, payload.LastFour, "")
 	if err != nil {
 		application.errorLog.Println("cannot subscribe to plan", err)
+		badResponse.Message = errorMessage
+		application.convertToJsonAndSend(badResponse, w)
 
 		return
 	}
 
-	customerIdAsIn, err := strconv.Atoi(newCustomer.ID)
+	fmt.Println("subscription :", subscription)
+
+	// if all is ok -> send ok response / else -> send error response
+	productId, err := strconv.Atoi(payload.ProductID)
 	if err != nil {
-		application.errorLog.Println("cannot convert customer id into int", err)
-
+		application.errorLog.Println("cannot convert product id into int", err)
 		return
 	}
+
+	customerID := application.saveCustomerGetCustomerID(payload.FirstName, payload.LastName, payload.Email)
+	if err != nil {
+		application.errorLog.Println("cannot save customer into database", err)
+		return
+	}
+
+	amount, err := strconv.Atoi(payload.Amount)
+	if err != nil {
+		application.errorLog.Println("cannot convert amount into int", err)
+		return
+	}
+
+	transaction := models.Transaction{
+		Amount:              amount,
+		Currency:            payload.Currency,
+		LastFour:            payload.LastFour,
+		TransactionStatusID: transactionStatus.Cleared,
+		ExpiryMonth:         payload.ExpiryMonth,
+		ExpiryYear:          payload.ExpiryYear,
+		CreatedAt:           time.Now(),
+		UpdatedAt:           time.Now(),
+	}
+
+	transactionId := application.saveTransactionGetTransactionID(transaction)
+	if err != nil {
+		application.errorLog.Println("cannot save transaction", err)
+		return
+	}
+
+	order := models.Order{
+		WidgetId:      productId,
+		TransactionId: transactionId,
+		CustomerID:    customerID,
+		StatusId:      status.Cleared,
+		Quantity:      1,
+		Amount:        amount,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
+
+	application.saveOrderGetOrderID(order)
 
 	response := jsonResponse{
 		Ok:      true,
-		Message: message,
-		Content: "Test",
-		Id:      subscriptionId,
+		Message: "Subscription was successful",
 	}
 
 	application.convertToJsonAndSend(response, w)
+}
+
+func (application *application) saveOrderGetOrderID(order models.Order) {
+	_, err := application.DB.InsertOrderGetOrderID(order)
+	if err != nil {
+		application.errorLog.Println("cannot get transaction id", err)
+	}
+}
+
+func (application *application) saveTransactionGetTransactionID(transaction models.Transaction) int {
+	txnID, err := application.DB.InsertTransactionGetTransactionID(transaction)
+	if err != nil {
+		application.errorLog.Println("cannot insert transaction into database", err)
+	}
+
+	return txnID
+}
+
+func (application *application) saveCustomerGetCustomerID(firstName, lastName, email string) int {
+	customer := models.Customer{
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	customerID, err := application.DB.InsertCustomerGetCustomerID(customer)
+	if err != nil {
+		application.errorLog.Println("cannot get customer id", err)
+
+		return 0
+	}
+
+	return customerID
 }
 
 func (application *application) handlerPostPaymentIntent(w http.ResponseWriter, r *http.Request) {

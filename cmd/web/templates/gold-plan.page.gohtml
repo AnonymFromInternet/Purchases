@@ -156,11 +156,18 @@
             } else {
                 // create a customer and subscribe to plan
                 let payload = {
+                    currency: 'USD',
+                    amount: document.getElementById("amount").value,
                     plan: '{{$widget.PlanID}}',
                     paymentMethod: result.paymentMethod.id,
                     email: document.getElementById('email').value,
                     lastFour: result.paymentMethod.card.last4,
-                    currency: 'USD',
+                    cardBrand: result.paymentMethod.card.brand,
+                    expiryMonth: result.paymentMethod.card.exp_month,
+                    expiryYear: result.paymentMethod.card.exp_year,
+                    productID: '{{$widget.ID}}',
+                    firstName: document.getElementById("first_name").value,
+                    lastName: document.getElementById("last_name").value,
                 }
 
                 const requestOptions = {
