@@ -6,6 +6,8 @@ import (
 	"github.com/stripe/stripe-go/v72/paymentmethod"
 )
 
+// This package is used for the methods for interaction with stripe via stripe-go library
+
 type Card struct {
 	PublicKey string
 	SecretKey string

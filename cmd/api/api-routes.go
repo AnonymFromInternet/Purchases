@@ -20,6 +20,7 @@ func (application *application) routes() http.Handler {
 	mux.Get("/api/widget-by-id/{id}", application.handlerGetWidgetById)
 
 	mux.Post("/api/payment-intent", application.handlerPostPaymentIntent)
+	mux.Post("/api/create-customer-and-subscribe-the-plan", application.handlerPostCreateCustomerAndSubscribePlan)
 
 	return mux
 }

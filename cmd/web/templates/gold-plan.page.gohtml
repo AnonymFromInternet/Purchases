@@ -95,7 +95,7 @@
 
         <hr>
 
-        <a href="javascript:void(0)" id="pay_button" class="btn btn-primary" onclick="onChargeCard()">Buy monthly subscription for $44</a>
+        <a href="javascript:void(0)" id="pay_button" class="btn btn-primary" onclick="onSubscribeGoldPlan()">Buy monthly subscription for $44</a>
 
         <div
                 id="processing_payment"
@@ -118,4 +118,78 @@
 
 {{define "js"}}
     {{template "stripe-js" .}}
+
+    {{$widget := index .Data "widget"}}
+
+    <script>
+        function onSubscribeGoldPlan() {
+            let form = document.getElementById('charge_form')
+
+            if (!form.checkValidity()) {
+                this.event.preventDefault()
+                this.event.stopPropagation()
+                form.classList.add('was-validated')
+            } else {
+                form.classList.add('was-validated')
+                hidePayButton()
+                postPaymentMethod()
+            }
+        }
+
+        function postPaymentMethod() {
+            let amountToCharge = String(parseFloat(document.getElementById('amount').value))
+
+            stripe.createPaymentMethod({
+                type: 'card',
+                card: card,
+                billing_details: {
+                    email: document.getElementById('email').value,
+                }
+            }).then(stripePaymentMethodHandler)
+        }
+
+        function stripePaymentMethodHandler(result) {
+            console.log('stripePaymentMethodHandler()')
+            console.log('widget data :', {{$widget}})
+            if (result.error) {
+                showCardError(result.error.message)
+            } else {
+                // create a customer and subscribe to plan
+                let payload = {
+                    plan: '{{$widget.PlanID}}',
+                    paymentMethod: result.paymentMethod.id,
+                    email: document.getElementById('email').value,
+                    lastFour: result.paymentMethod.card.last4,
+                }
+
+                const requestOptions = {
+                    method: 'post',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                }
+
+                fetch("{{.Api}}/api/create-customer-and-subscribe-the-plan", requestOptions)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('data :', data)
+                        hideLoadingSpinner()
+                        hidePayButton()
+
+                        // setting hidden inputs values
+                        // submitting form
+
+                        let parsedData
+
+                        try {
+                            parsedData = JSON.parse(data)
+                        } catch (e) {
+
+                        }
+                    })
+            }
+        }
+    </script>
 {{end}}

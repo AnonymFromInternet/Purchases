@@ -26,8 +26,6 @@
         function postPaymentIntent() {
             let amountToCharge = String(parseFloat(document.getElementById('amount').value))
 
-            console.log('amountToCharge :', amountToCharge)
-
             let payload = {
                 amount: amountToCharge,
                 currency: 'USD',

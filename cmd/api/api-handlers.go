@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/AnonymFromInternet/Purchases/internal/cards"
 	"github.com/go-chi/chi/v5"
 	"net/http"
@@ -9,8 +10,12 @@ import (
 )
 
 type stripePayload struct {
-	Currency string `json:"currency"`
-	Amount   string `json:"amount"`
+	Currency      string `json:"currency"`
+	Amount        string `json:"amount"`
+	Plan          string `json:"plan"`
+	PaymentMethod string `json:"paymentMethod"`
+	Email         string `json:"email"`
+	LastFour      string `json:"lastFour"`
 }
 
 type jsonResponse struct {
@@ -39,6 +44,29 @@ func (application *application) handlerGetWidgetById(w http.ResponseWriter, r *h
 
 		return
 	}
+}
+
+func (application *application) handlerPostCreateCustomerAndSubscribePlan(w http.ResponseWriter, r *http.Request) {
+	var payload stripePayload
+	var err error
+
+	err = json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		application.errorLog.Println("cannot decode payload", err)
+
+		return
+	}
+
+	fmt.Println("payload :", payload)
+
+	response := jsonResponse{
+		Ok:      true,
+		Message: "Test message from new handler from api",
+		Content: "Test",
+		Id:      8,
+	}
+
+	application.convertToJsonAndSend(response, w)
 }
 
 func (application *application) handlerPostPaymentIntent(w http.ResponseWriter, r *http.Request) {
