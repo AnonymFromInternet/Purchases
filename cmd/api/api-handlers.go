@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/AnonymFromInternet/Purchases/internal/cards"
+	"github.com/AnonymFromInternet/Purchases/internal/contentTypes"
 	"github.com/AnonymFromInternet/Purchases/internal/models"
 	"github.com/AnonymFromInternet/Purchases/internal/status"
 	"github.com/AnonymFromInternet/Purchases/internal/transactionStatus"
@@ -48,13 +49,33 @@ func (application *application) handlerGetWidgetById(w http.ResponseWriter, r *h
 	widget, err := application.DB.GetWidgetBy(idAsInt)
 	widgetAsResponse, err := json.MarshalIndent(widget, "", " ")
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(contentTypes.ContentTypeKey, contentTypes.ApplicationJSON)
 	_, err = w.Write(widgetAsResponse)
 	if err != nil {
 		application.errorLog.Println("cannot sent widget as a response", err)
 
 		return
 	}
+}
+
+func (application *application) handlerPostCreateAuthToken(w http.ResponseWriter, r *http.Request) {
+	var loginPagePayload LoginPagePayload
+
+	application.readJSON(w, r, &loginPagePayload)
+
+	var payload AnswerPayload
+	payload.Error = false
+	payload.Message = "Authentication was successful"
+
+	output, err := json.MarshalIndent(payload, "", " ")
+	if err != nil {
+		application.errorLog.Println("cannot convert payload for user into slice of bytes", err)
+
+		return
+	}
+
+	w.Header().Set(contentTypes.ContentTypeKey, contentTypes.ApplicationJSON)
+	_, _ = w.Write(output)
 }
 
 func (application *application) handlerPostCreateCustomerAndSubscribePlan(w http.ResponseWriter, r *http.Request) {
@@ -244,6 +265,6 @@ func (application *application) convertToJsonAndSend(data interface{}, w http.Re
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(contentTypes.ContentTypeKey, contentTypes.ApplicationJSON)
 	_, _ = w.Write(output)
 }

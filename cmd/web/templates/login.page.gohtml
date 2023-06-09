@@ -79,7 +79,34 @@
 {{define "js"}}
     <script>
         function onLogin() {
+            let form = document.getElementById('charge_form')
 
+            if (!form.checkValidity()) {
+                this.event.preventDefault()
+                this.event.stopPropagation()
+                form.classList.add('was-validated')
+            } else {
+                form.classList.add('was-validated')
+
+                let payload = {
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value,
+                }
+
+                fetch("{{.Api}}/api/authenticate", {
+                    method: 'post',
+                    mode: 'cors',
+                    headers:{
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                })
+                    .then(response => response.text())
+                    .then(data => {
+                        console.log('data get from api/authenticate:', data)
+                    })
+            }
         }
     </script>
 {{end}}

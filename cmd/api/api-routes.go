@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/AnonymFromInternet/Purchases/internal/contentTypes"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"net/http"
@@ -12,7 +13,7 @@ func (application *application) routes() http.Handler {
 	mux.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
 		AllowedMethods:   []string{"GET", "POST", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowedHeaders:   []string{"Accept", "Authorization", contentTypes.ContentTypeKey, "X-CSRF-Token"},
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
@@ -21,6 +22,7 @@ func (application *application) routes() http.Handler {
 
 	mux.Post("/api/payment-intent", application.handlerPostPaymentIntent)
 	mux.Post("/api/create-customer-and-subscribe-the-plan", application.handlerPostCreateCustomerAndSubscribePlan)
+	mux.Post("/api/authenticate", application.handlerPostCreateAuthToken)
 
 	return mux
 }
