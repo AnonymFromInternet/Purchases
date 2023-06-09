@@ -54,3 +54,15 @@ func (application *application) sendBadRequest(w http.ResponseWriter, r *http.Re
 	w.Header().Set(contentTypes.ContentTypeKey, contentTypes.ApplicationJSON)
 	_, _ = w.Write(output)
 }
+
+func (application *application) convertToJsonAndSend(data interface{}, w http.ResponseWriter) {
+	output, err := json.MarshalIndent(data, "", " ")
+	if err != nil {
+		application.errorLog.Println("cannot convert data into json", err)
+
+		return
+	}
+
+	w.Header().Set(contentTypes.ContentTypeKey, contentTypes.ApplicationJSON)
+	_, _ = w.Write(output)
+}
