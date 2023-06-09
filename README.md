@@ -1,5 +1,5 @@
 ### This is the repo for the App, which allows users to make online purchases of some sort of items or subscriptions via Stripe payment service.
-### Also has an admin backend system for managing all the purchases and subscriptions, reset email and password.
+### Also has an admin backend system for managing all the purchases, subscriptions and users, reset email and password.
 ###
 #### Can be started with the commands from Makefile:
 #### for example:
