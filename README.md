@@ -1,6 +1,10 @@
-### This is the repo for the App, which allows users to make online purchases of some sort of items via Stripe payment service.
+### This is the repo for the App, which allows users to make online purchases of some sort of items or subscriptions via Stripe payment service.
+### Also has an admin backend system for managing all the purchases and subscriptions, reset email and password.
+###
 #### Can be started with the commands from Makefile:
-#### $ make start and so on.
+#### for example:
+#### $ make start
+#### and so on...
 
 #### Variable STRIPE_SECRET_KEY in Makefile should be initialized for the correct work.
 #### Uses:
