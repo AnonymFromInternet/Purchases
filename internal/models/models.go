@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 )
 
@@ -141,6 +142,36 @@ func (model *DBModel) InsertCustomerGetCustomerID(customer Customer) (int, error
 	}
 
 	return customerId, nil
+}
+
+func (model *DBModel) GetUserBy(email string) (User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	const query = `
+		select
+			id, first_name, last_name, email, password, created_at, updated_at
+		from users
+		where email = $1
+	`
+	var user User
+
+	row := model.DB.QueryRowContext(ctx, query, strings.ToLower(email))
+	err := row.Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
 }
 
 // Models for the postgres db

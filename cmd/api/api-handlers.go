@@ -63,19 +63,40 @@ func (application *application) handlerPostCreateAuthToken(w http.ResponseWriter
 
 	application.readJSON(w, r, &loginPagePayload)
 
-	var payload AnswerPayload
-	payload.Error = false
-	payload.Message = "Authentication was successful"
-
-	output, err := json.MarshalIndent(payload, "", " ")
+	user, err := application.DB.GetUserBy(loginPagePayload.Email)
 	if err != nil {
-		application.errorLog.Println("cannot convert payload for user into slice of bytes", err)
-
+		application.errorLog.Println("cannot get user from database", err)
+		application.sendInvalidCredentials(w)
 		return
 	}
 
-	w.Header().Set(contentTypes.ContentTypeKey, contentTypes.ApplicationJSON)
-	_, _ = w.Write(output)
+	isPasswordValid := application.isPasswordValid(user.Password, loginPagePayload.Password)
+	if !isPasswordValid {
+		application.errorLog.Println("invalid password or an error by the comparing process", err)
+		application.sendInvalidCredentials(w)
+		return
+	}
+
+	token, err := models.GenerateToken(user.ID, 24*time.Hour, models.ScopeAuthentication)
+	if err != nil {
+		application.errorLog.Println("invalid password or an error by the comparing process", err)
+		application.sendInvalidCredentials(w)
+		return
+	}
+
+	err = application.DB.InsertToken(token.Hash, user)
+	if err != nil {
+		application.errorLog.Println("cannot save token into database", err)
+		application.sendBadRequest(w, r, err)
+		return
+	}
+
+	var payload AnswerPayload
+	payload.Error = false
+	payload.Message = fmt.Sprintf("your token for %s", user.Email)
+	payload.Token = token
+
+	application.convertToJsonAndSend(payload, w)
 }
 
 func (application *application) handlerPostCreateCustomerAndSubscribePlan(w http.ResponseWriter, r *http.Request) {
