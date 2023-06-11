@@ -149,6 +149,13 @@
                 }
             })
 
-        })()
+        })();
+
+        function onLogout() {
+            localStorage.removeItem("token")
+            localStorage.removeItem("tokenExpiry")
+
+            location.href = "/login"
+        }
     </script>
 {{end}}

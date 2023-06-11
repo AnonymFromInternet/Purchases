@@ -112,6 +112,7 @@
                         } else {
                             showLoginSuccess()
                             saveTokenAndExpiryToLocalStorage(data.token.token, data.token.expiry)
+                            redirectToMainPage()
                         }
                     })
             }
@@ -136,6 +137,12 @@
         function saveTokenAndExpiryToLocalStorage(token, expiry) {
             localStorage.setItem("token", token)
             localStorage.setItem("tokenExpiry", expiry)
+        }
+
+        function redirectToMainPage() {
+            setTimeout(() => {
+                location.href = "/main"
+            }, 1000)
         }
     </script>
 {{end}}
