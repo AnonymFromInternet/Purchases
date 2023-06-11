@@ -8,6 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"io"
 	"net/http"
+	"strings"
 )
 
 type LoginPagePayload struct {
@@ -94,4 +95,36 @@ func (application *application) isPasswordValid(hash, passwordGivenByUser string
 	}
 
 	return true
+}
+
+func (application *application) checkTokenValidityGetUser(r *http.Request) (*models.User, error) {
+	authorizationData := r.Header.Get("Authorization")
+	if authorizationData == "" {
+		application.errorLog.Println("cannot get auth data from headers")
+
+		return nil, errors.New("authentication was not successful")
+	}
+
+	sliceFromAuthorizationData := strings.Split(authorizationData, " ")
+	if len(sliceFromAuthorizationData) < 2 || sliceFromAuthorizationData[0] != "Bearer" {
+		application.errorLog.Println("cannot slice auth data")
+
+		return nil, errors.New("authentication was not successful")
+	}
+
+	token := sliceFromAuthorizationData[1]
+	if len(token) < 26 {
+		application.errorLog.Println("token length is less than 26")
+
+		return nil, errors.New("invalid token length")
+	}
+
+	user, err := application.DB.GetUserByToken(token)
+	if err != nil {
+		application.errorLog.Println("cannot get user by token :", err)
+
+		return nil, err
+	}
+
+	return user, nil
 }

@@ -171,7 +171,7 @@
                     headers: headers,
                 }
 
-                fetch("{{.API}}/api/is-authenticated", requestOptions)
+                fetch("{{.Api}}/api/is-authenticated", requestOptions)
                     .then(response => response.json())
                     .then(data => {
                         if (!data.error) {

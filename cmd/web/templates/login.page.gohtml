@@ -107,6 +107,7 @@
                     .then(response => response.json())
                     .then(data => {
                         console.log('data get from api/authenticate:', data)
+
                         if (data.error) {
                             showLoginError(data.message)
                         } else {

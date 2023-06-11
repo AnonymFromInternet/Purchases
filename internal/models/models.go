@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"strings"
 	"time"
@@ -144,7 +145,7 @@ func (model *DBModel) InsertCustomerGetCustomerID(customer Customer) (int, error
 	return customerId, nil
 }
 
-func (model *DBModel) GetUserBy(email string) (User, error) {
+func (model *DBModel) GetUserByEmail(email string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -168,10 +169,43 @@ func (model *DBModel) GetUserBy(email string) (User, error) {
 	)
 
 	if err != nil {
-		return user, err
+		return &user, err
 	}
 
-	return user, nil
+	return &user, nil
+}
+
+func (model *DBModel) GetUserByToken(token string) (*User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	tokenHash := sha256.Sum256([]byte(token))
+
+	const query = `
+		select u.id, u.first_name, u.last_name, u.email
+		from users u
+		inner join tokens t on(u.id = t.user_id)
+		where t.token_hash = $1
+	`
+
+	var user User
+
+	err := model.DB.QueryRowContext(
+		ctx,
+		query,
+		tokenHash,
+	).Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }
 
 // Models for the postgres db

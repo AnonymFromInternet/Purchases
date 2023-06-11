@@ -63,7 +63,7 @@ func (application *application) handlerPostCreateAuthToken(w http.ResponseWriter
 
 	application.readJSON(w, r, &loginPagePayload)
 
-	user, err := application.DB.GetUserBy(loginPagePayload.Email)
+	user, err := application.DB.GetUserByEmail(loginPagePayload.Email)
 	if err != nil {
 		application.errorLog.Println("cannot get user from database", err)
 		application.sendInvalidCredentials(w)
@@ -276,4 +276,20 @@ func (application *application) handlerPostPaymentIntent(w http.ResponseWriter, 
 	}
 
 	application.convertToJsonAndSend(paymentIntent, w)
+}
+
+func (application *application) handlerPostIsAuthenticated(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("handlerPostIsAuthenticated()")
+	user, err := application.checkTokenValidityGetUser(r)
+	if err != nil {
+		application.errorLog.Println("problem by token validation :", err)
+		application.sendInvalidCredentials(w)
+		return
+	}
+
+	var answerPayload AnswerPayload
+	answerPayload.Error = false
+	answerPayload.Message = fmt.Sprintf("authentication for %s was successful", user.Email)
+
+	application.convertToJsonAndSend(answerPayload, w)
 }
