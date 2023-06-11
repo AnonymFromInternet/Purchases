@@ -28,9 +28,7 @@ func (application *application) routes() http.Handler {
 	mux.Route("/api/admin", func(chiRouter chi.Router) {
 		chiRouter.Use(application.AuthMiddleware)
 
-		chiRouter.Get("/test", func(w http.ResponseWriter, r *http.Request) {
-			_, _ = w.Write([]byte("TEST ROUTE"))
-		})
+		chiRouter.Post("/payment-succeeded-virtual-terminal", application.handlerPostPaymentSucceededVirtualTerminal)
 	})
 
 	return mux

@@ -14,8 +14,6 @@
             <div class="alert alert-danger text-center d-none" id="card_messages"></div>
 
             <form
-                    action="/payment-succeeded-virtual-terminal"
-                    method="post"
                     name="charge-form"
                     id="charge_form"
                     class="d-block needs-validation charge-form"
@@ -130,6 +128,14 @@
                 <input type="hidden" name="payment-currency" id="payment_currency">
             </form>
         </div>
+    </div>
+
+    <div class="col d-none" id="succeeded_part">
+        <h2 class="mt-5 text-center text-success">Payment Succeeded in Virtual Terminal</h2>
+
+        <hr>
+
+        <a href="javascript:void(0)" id="pay_button" class="btn btn-primary" onclick="onChargeCard()">Charge another Card</a>
     </div>
 
     <script>

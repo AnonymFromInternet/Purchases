@@ -292,3 +292,49 @@ func (application *application) handlerPostIsAuthenticated(w http.ResponseWriter
 
 	application.convertToJsonAndSend(answerPayload, w)
 }
+
+func (application *application) handlerPostPaymentSucceededVirtualTerminal(w http.ResponseWriter, r *http.Request) {
+	var transactionData models.TransactionData
+
+	application.readJSON(w, r, &transactionData)
+
+	card := cards.Card{
+		PublicKey: application.config.stripe.publicKey,
+		SecretKey: application.config.stripe.secretKey,
+	}
+
+	paymentIntent, err := card.RetrievePaymentIntent(transactionData.PaymentIntent)
+	if err != nil {
+		application.errorLog.Println("cannot retrieve payment intent :", err)
+		return
+	}
+
+	paymentMethod, err := card.CreatePaymentMethod(transactionData.PaymentMethod)
+	if err != nil {
+		application.errorLog.Println("cannot retrieve payment method :", err)
+		return
+	}
+
+	transactionData.LastFour = paymentMethod.Card.Last4
+	transactionData.ExpiryMonth = paymentMethod.Card.ExpMonth
+	transactionData.ExpiryYear = paymentMethod.Card.ExpYear
+
+	transaction := models.Transaction{
+		Amount:              transactionData.PaymentAmount,
+		Currency:            transactionData.PaymentCurrency,
+		LastFour:            transactionData.LastFour,
+		BankReturnCode:      paymentIntent.Charges.Data[0].ID,
+		TransactionStatusID: transactionStatus.Cleared,
+		ExpiryMonth:         int(transactionData.ExpiryMonth),
+		ExpiryYear:          int(transactionData.ExpiryYear),
+		CreatedAt:           time.Now(),
+		UpdatedAt:           time.Now(),
+		PaymentMethod:       transactionData.PaymentMethod,
+		PaymentIntent:       transactionData.PaymentIntent,
+	}
+
+	_ = application.saveTransactionGetTransactionID(transaction)
+
+	application.convertToJsonAndSend(transaction, w)
+
+}

@@ -159,7 +159,6 @@ func (application *application) handlerPostPaymentSucceededByOnce(w http.Respons
 }
 
 func (application *application) handlerPostPaymentSucceededVirtualTerminal(w http.ResponseWriter, r *http.Request) {
-	// Тут должен быть только сбор данных из формы, и взаимодействие с базой данных, а уже сам рендер в следующем методе после редиректа
 	formData := application.getFormData(r)
 
 	fmt.Println("formData :", formData)

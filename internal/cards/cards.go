@@ -53,10 +53,10 @@ func (card *Card) CreatePaymentIntent(currency string, amount int) (*stripe.Paym
 }
 
 // CreatePaymentMethod returns *stripe.PaymentMethod, which is the detailed information about payment method
-func (card *Card) CreatePaymentMethod(s string) (*stripe.PaymentMethod, error) {
+func (card *Card) CreatePaymentMethod(paymentMethodId string) (*stripe.PaymentMethod, error) {
 	stripe.Key = card.SecretKey
 
-	return paymentmethod.Get(s, nil)
+	return paymentmethod.Get(paymentMethodId, nil)
 }
 
 // RetrievePaymentIntent gets an existing pi by id

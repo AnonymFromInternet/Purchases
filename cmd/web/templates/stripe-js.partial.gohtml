@@ -64,18 +64,9 @@
 
                             if (result.paymentIntent) {
                                 if (result.paymentIntent.status === "succeeded") {
-                                    document.getElementById('payment_method').value = result.paymentIntent.payment_method
-                                    document.getElementById('payment_intent').value = result.paymentIntent.id
-                                    document.getElementById('payment_amount').value = result.paymentIntent.amount
-                                    document.getElementById('payment_currency').value = result.paymentIntent.currency
-
                                     hideLoadingSpinner()
                                     showCardSuccess()
-
-                                    // submitting the form
-                                    setTimeout(() => {
-                                        document.getElementById("charge_form").submit()
-                                    }, 1000)
+                                    saveTransaction(result)
                                 }
                             }
                         })
@@ -84,6 +75,42 @@
                         showPayButton()
                     }
                 })
+        }
+
+        function saveTransaction(result) {
+            const payload = {
+                amount: parseInt(document.getElementById('amount').value),
+                currency: result.paymentIntent.currency,
+                firstName: '',
+                lastName: '',
+                email: document.getElementById('email').value,
+                paymentIntent: result.paymentIntent.id,
+                paymentMethod: result.paymentIntent.payment_method,
+            }
+
+            const token = localStorage.getItem("token")
+
+            const requestOptions = {
+                method: 'post',
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token,
+                },
+                body: JSON.stringify(payload),
+            }
+
+            fetch("{{.Api}}/api/admin/payment-succeeded-virtual-terminal", requestOptions)
+                .then(response => response.json())
+                .then(data => {
+                    hideLoadingSpinner()
+                    showCardSuccess()
+                    showPaymentSucceededPart()
+                })
+        }
+
+        function showPaymentSucceededPart() {
+            document.getElementById('succeeded_part').classList.remove("d-none")
         }
 
         function hideLoadingSpinner() {
