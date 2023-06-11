@@ -12,7 +12,7 @@
 
             <hr>
 
-            <div class="alert alert-danger text-center d-none" id="card_messages"></div>
+            <div class="alert alert-danger text-center d-none" id="login_messages"></div>
 
             <form
                     action="#"
@@ -78,6 +78,8 @@
 
 {{define "js"}}
     <script>
+        let loginMessages = document.getElementById('login_messages')
+
         function onLogin() {
             let form = document.getElementById('login_form')
 
@@ -102,11 +104,38 @@
                     },
                     body: JSON.stringify(payload),
                 })
-                    .then(response => response.text())
+                    .then(response => response.json())
                     .then(data => {
                         console.log('data get from api/authenticate:', data)
+                        if (data.error) {
+                            showLoginError(data.message)
+                        } else {
+                            showLoginSuccess()
+                            saveTokenAndExpiryToLocalStorage(data.token.token, data.token.expiry)
+                        }
                     })
             }
+        }
+
+        function showLoginError(message) {
+            loginMessages.classList.remove('d-none')
+            loginMessages.classList.remove('alert-success')
+            loginMessages.classList.add('alert-danger')
+
+            loginMessages.innerText = message
+        }
+
+        function showLoginSuccess() {
+            loginMessages.classList.remove('d-none')
+            loginMessages.classList.remove('alert-danger')
+            loginMessages.classList.add('alert-success')
+
+            loginMessages.innerText = "Login successful"
+        }
+
+        function saveTokenAndExpiryToLocalStorage(token, expiry) {
+            localStorage.setItem("token", token)
+            localStorage.setItem("tokenExpiry", expiry)
         }
     </script>
 {{end}}
