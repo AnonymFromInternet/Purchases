@@ -193,7 +193,7 @@ func (model *DBModel) GetUserByToken(token string) (*User, error) {
 	err := model.DB.QueryRowContext(
 		ctx,
 		query,
-		tokenHash,
+		tokenHash[:],
 	).Scan(
 		&user.ID,
 		&user.FirstName,

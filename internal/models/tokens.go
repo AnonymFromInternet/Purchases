@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/base32"
 	"time"
 )
@@ -45,36 +46,74 @@ func (model *DBModel) InsertToken(tokenHash []byte, user *User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
+	var tokenLastUpdatedTime time.Time
+
 	query := `
+		select updated_at from tokens
+		where user_id = $1
+	`
+
+	err := model.DB.QueryRowContext(ctx, query, user.ID).Scan(&tokenLastUpdatedTime)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
+	if err == sql.ErrNoRows {
+		statement := `
+		insert into tokens (user_id, name, email, token_hash, created_at, updated_at)
+		values ($1, $2, $3, $4, $5, $6)
+	`
+		_, err = model.DB.ExecContext(
+			ctx,
+			statement,
+			user.ID,
+			user.LastName,
+			user.Email,
+			tokenHash,
+			time.Now(),
+			time.Now(),
+		)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	tokenExpiryUpTo := tokenLastUpdatedTime.Add(24 * time.Hour)
+
+	if tokenLastUpdatedTime.After(tokenExpiryUpTo) {
+		statement := `
 		delete from tokens
 		where user_id = $1
 	`
 
-	_, err := model.DB.ExecContext(
-		ctx,
-		query,
-		user.ID,
-	)
-	if err != nil {
-		return err
-	}
+		_, err = model.DB.ExecContext(
+			ctx,
+			statement,
+			user.ID,
+		)
+		if err != nil {
+			return err
+		}
 
-	query = `
+		statement = `
 		insert into tokens (user_id, name, email, token_hash, created_at, updated_at)
 		values ($1, $2, $3, $4, $5, $6)
 	`
-	_, err = model.DB.ExecContext(
-		ctx,
-		query,
-		user.ID,
-		user.LastName,
-		user.Email,
-		tokenHash,
-		time.Now(),
-		time.Now(),
-	)
-	if err != nil {
-		return err
+		_, err = model.DB.ExecContext(
+			ctx,
+			query,
+			user.ID,
+			user.LastName,
+			user.Email,
+			tokenHash,
+			time.Now(),
+			time.Now(),
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

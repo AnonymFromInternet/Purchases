@@ -279,7 +279,6 @@ func (application *application) handlerPostPaymentIntent(w http.ResponseWriter, 
 }
 
 func (application *application) handlerPostIsAuthenticated(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("handlerPostIsAuthenticated()")
 	user, err := application.checkTokenValidityGetUser(r)
 	if err != nil {
 		application.errorLog.Println("problem by token validation :", err)
