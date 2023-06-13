@@ -48,6 +48,40 @@ func (application *application) handlerGetLoginPage(w http.ResponseWriter, r *ht
 	}
 }
 
+func (application *application) handlerPostLoginPage(w http.ResponseWriter, r *http.Request) {
+	err := application.SessionManager.RenewToken(r.Context())
+	if err != nil {
+		application.errorLog.Println("cannot renew token :", err)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		application.errorLog.Println("cannot parse form :", err)
+		return
+	}
+
+	email := r.Form.Get("email")
+	password := r.Form.Get("password")
+
+	user, err := application.DB.GetUserByEmail(email)
+	if err != nil {
+		application.errorLog.Println(fmt.Sprintf("cannot get user from database with email %s", email), err)
+		return
+	}
+
+	isPasswordValid := application.isPasswordValid(user.Password, password)
+	if !isPasswordValid {
+		application.errorLog.Println("invalid password")
+		http.Redirect(w, r, "login", http.StatusSeeOther)
+		return
+	}
+
+	application.SessionManager.Put(r.Context(), "userID", user.ID)
+
+	http.Redirect(w, r, "/main", http.StatusSeeOther)
+}
+
 func (application *application) handlerGetReceiptAfterBuyOnce(w http.ResponseWriter, r *http.Request) {
 	sessionData := application.SessionManager.Get(r.Context(), "receipt").(models.TransactionData)
 	data := make(map[string]interface{})
@@ -81,7 +115,7 @@ func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http
 		return
 	}
 
-	widget, err := application.DB.GetWidgetBy(id)
+	widget, err := application.DB.GetWidgetByID(id)
 
 	if err != nil {
 		application.errorLog.Println("cannot get widget from db", err)
@@ -99,7 +133,7 @@ func (application *application) handlerGetBuyOnce(w http.ResponseWriter, r *http
 }
 
 func (application *application) handlerGetGoldPlan(w http.ResponseWriter, r *http.Request) {
-	widget, err := application.DB.GetWidgetBy(2)
+	widget, err := application.DB.GetWidgetByID(2)
 	if err != nil {
 		application.errorLog.Println("cannot get widget from database", err)
 

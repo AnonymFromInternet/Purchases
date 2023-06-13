@@ -46,7 +46,7 @@ func (application *application) handlerGetWidgetById(w http.ResponseWriter, r *h
 		return
 	}
 
-	widget, err := application.DB.GetWidgetBy(idAsInt)
+	widget, err := application.DB.GetWidgetByID(idAsInt)
 	widgetAsResponse, err := json.MarshalIndent(widget, "", " ")
 
 	w.Header().Set(contentTypes.ContentTypeKey, contentTypes.ApplicationJSON)
@@ -72,7 +72,7 @@ func (application *application) handlerPostCreateAuthToken(w http.ResponseWriter
 
 	isPasswordValid := application.isPasswordValid(user.Password, loginPagePayload.Password)
 	if !isPasswordValid {
-		application.errorLog.Println("invalid password or an error by the comparing process", err)
+		application.errorLog.Println("invalid password or an error by the comparing process")
 		application.sendInvalidCredentials(w)
 		return
 	}

@@ -22,7 +22,7 @@ func NewModels(db *sql.DB) Models {
 	}
 }
 
-func (model *DBModel) GetWidgetBy(id int) (Widget, error) {
+func (model *DBModel) GetWidgetByID(id int) (Widget, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 

@@ -15,7 +15,7 @@
             <div class="alert alert-danger text-center d-none" id="login_messages"></div>
 
             <form
-                    action="#"
+                    action="/login"
                     method="post"
                     name="login-form"
                     id="login_form"
@@ -113,7 +113,9 @@
                         } else {
                             showLoginSuccess()
                             saveTokenAndExpiryToLocalStorage(data.token.token, data.token.expiry)
-                            redirectToMainPage()
+                            // redirectToMainPage()
+
+                            form.submit()
                         }
                     })
             }
