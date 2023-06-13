@@ -99,6 +99,10 @@ func (application *application) handlerPostCreateAuthToken(w http.ResponseWriter
 	application.convertToJsonAndSend(payload, w)
 }
 
+func (application *application) handlerPostForgetPassword(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func (application *application) handlerPostCreateCustomerAndSubscribePlan(w http.ResponseWriter, r *http.Request) {
 	var payload stripePayload
 	var err error

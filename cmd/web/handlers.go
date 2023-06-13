@@ -332,3 +332,18 @@ func (application *application) getFormData(r *http.Request) models.TransactionD
 
 	return formData
 }
+
+func (application *application) handlerPostLogoutPage(w http.ResponseWriter, r *http.Request) {
+	_ = application.SessionManager.Destroy(r.Context())
+	_ = application.SessionManager.RenewToken(r.Context())
+
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
+func (application *application) handlerGetForgetPassword(w http.ResponseWriter, r *http.Request) {
+	err := application.renderTemplate(w, r, "forget-password", &templateData{}, "stripe-js")
+	if err != nil {
+		application.errorLog.Println("cannot render template forget-password :", err)
+		return
+	}
+}

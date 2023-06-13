@@ -24,6 +24,7 @@ func (application *application) routes() http.Handler {
 	mux.Post("/api/create-customer-and-subscribe-the-plan", application.handlerPostCreateCustomerAndSubscribePlan)
 	mux.Post("/api/authenticate", application.handlerPostCreateAuthToken)
 	mux.Post("/api/is-authenticated", application.handlerPostIsAuthenticated)
+	mux.Post("/api/forget-password", application.handlerPostForgetPassword)
 
 	mux.Route("/api/admin", func(chiRouter chi.Router) {
 		chiRouter.Use(application.AuthMiddleware)
