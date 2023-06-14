@@ -35,6 +35,9 @@ type config struct {
 		username string
 		password string
 	}
+
+	secretKeyForPasswordReset   string
+	frontendURLForPasswordReset string
 }
 
 type application struct {
@@ -80,6 +83,8 @@ func setAndParseFlags(config *config) {
 	flag.IntVar(&config.smtp.port, "smtpport", 587, "smtp port")
 	flag.StringVar(&config.smtp.username, "smtpusername", "695a073ec18e9d", "smtp username")
 	flag.StringVar(&config.smtp.password, "smtppassword", "6b16ce62a39ec5", "smtp password")
+	flag.StringVar(&config.secretKeyForPasswordReset, "secretkey", "reset", "smtp password")
+	flag.StringVar(&config.frontendURLForPasswordReset, "frontendURL", "http://localhost:4000", "frontend URL")
 
 	flag.Parse()
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/AnonymFromInternet/Purchases/internal/models"
 	"github.com/AnonymFromInternet/Purchases/internal/status"
 	"github.com/AnonymFromInternet/Purchases/internal/transactionStatus"
+	"github.com/AnonymFromInternet/Purchases/internal/urlsigner"
 	"github.com/go-chi/chi/v5"
 	"github.com/stripe/stripe-go/v72"
 	"net/http"
@@ -106,13 +107,35 @@ func (application *application) handlerPostForgetPassword(w http.ResponseWriter,
 
 	application.readJSON(w, r, &payload)
 
+	// verify if that email exists in the database
+	_, err := application.DB.GetUserByEmail(payload.Email)
+	if err != nil {
+		var response struct {
+			Error   bool   `json:"error"`
+			Message string `json:"message"`
+		}
+
+		response.Error = true
+		response.Message = "You are not registered user"
+		application.convertToJsonAndSend(response, w)
+
+		return
+	}
+
+	link := fmt.Sprintf("%s/reset-password?email=%s", application.config.frontendURLForPasswordReset, payload.Email)
+	sign := urlsigner.Signer{
+		Secret: []byte(application.config.secretKeyForPasswordReset),
+	}
+
+	signedLink := sign.GenerateTokenFromString(link)
+
 	var data struct {
 		Link string
 	}
 
-	data.Link = "www.google.com"
+	data.Link = signedLink
 
-	err := application.SendEmail("widgets@widgets.com", payload.Email, "Password reset", "password-reset", data)
+	err = application.SendEmail("widgets@widgets.com", payload.Email, "Password reset", "password-reset", data)
 	if err != nil {
 		application.errorLog.Println("cannot send email for password reset :", err)
 		application.sendBadRequest(w, r, err)
