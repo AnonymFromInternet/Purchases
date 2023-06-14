@@ -350,21 +350,25 @@ func (application *application) handlerGetForgetPassword(w http.ResponseWriter, 
 }
 
 func (application *application) handlerGetResetPassword(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("handlerGetResetPassword()")
 	requestURL := r.RequestURI
-	token := fmt.Sprintf("%s%s", application.config.frontendURLForPasswordReset, requestURL)
-
-	fmt.Println("requestURL :", requestURL)
+	fullURL := fmt.Sprintf("%s%s", application.config.frontendURLForPasswordReset, requestURL)
 
 	signer := urlsigner.Signer{
 		Secret: []byte(application.config.secretKeyForPasswordReset),
 	}
 
-	isTokenValid := signer.IsTokenValid(token)
-
+	isTokenValid := signer.IsTokenValid(fullURL)
 	if !isTokenValid {
-		_, _ = w.Write([]byte("invalid"))
-	} else {
-		_, _ = w.Write([]byte("valid"))
+		_, _ = w.Write([]byte("bad request or something went wrong"))
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["email"] = r.URL.Query().Get("email")
+
+	err := application.renderTemplate(w, r, "set-new-password", &templateData{Data: data})
+	if err != nil {
+		application.errorLog.Println("cannot render the set-new-password template :", err)
+		return
 	}
 }
