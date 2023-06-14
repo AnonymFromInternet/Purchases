@@ -177,14 +177,6 @@
             })
 
         })();
-
-        function onLogout() {
-            localStorage.removeItem("token")
-            localStorage.removeItem("tokenExpiry")
-
-            location.href = "/logout"
-        }
-
         function checkAuthentication() {
             let token = localStorage.getItem("token")
 

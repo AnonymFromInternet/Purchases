@@ -100,7 +100,34 @@ func (application *application) handlerPostCreateAuthToken(w http.ResponseWriter
 }
 
 func (application *application) handlerPostForgetPassword(w http.ResponseWriter, r *http.Request) {
+	var payload struct {
+		Email string `json:"email"`
+	}
 
+	application.readJSON(w, r, &payload)
+
+	var data struct {
+		Link string
+	}
+
+	data.Link = "www.google.com"
+
+	err := application.SendEmail("widgets@widgets.com", payload.Email, "Password reset", "password-reset", data)
+	if err != nil {
+		application.errorLog.Println("cannot send email for password reset :", err)
+		application.sendBadRequest(w, r, err)
+		return
+	}
+
+	var response struct {
+		Error   bool   `json:"error"`
+		Message string `json:"message"`
+	}
+
+	response.Error = false
+	response.Message = "Email was sent"
+
+	application.convertToJsonAndSend(response, w)
 }
 
 func (application *application) handlerPostCreateCustomerAndSubscribePlan(w http.ResponseWriter, r *http.Request) {

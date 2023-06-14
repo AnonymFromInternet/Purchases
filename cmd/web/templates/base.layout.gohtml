@@ -74,7 +74,14 @@
     </script>
 
     {{block "js" .}}
+        <script>
+            function onLogout() {
+                localStorage.removeItem("token")
+                localStorage.removeItem("tokenExpiry")
 
+                location.href = "/logout"
+            }
+        </script>
     {{end}}
     </body>
     </html>

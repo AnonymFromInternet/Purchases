@@ -28,6 +28,13 @@ type config struct {
 		secretKey string
 		publicKey string
 	}
+
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
+	}
 }
 
 type application struct {
@@ -68,6 +75,11 @@ func setAndParseFlags(config *config) {
 	flag.IntVar(&config.port, "port", 4001, "Server port to listen on")
 	flag.StringVar(&config.env, "env", "development", "Application environment{development|production|maintenance}")
 	flag.StringVar(&config.db.dataSourceName, "dsn", "host=localhost port=5432 dbname=postgres user=postgres password=", "DSN")
+
+	flag.StringVar(&config.smtp.host, "smtphost", "smtp.mailtrap.io", "smtp host")
+	flag.IntVar(&config.smtp.port, "smtpport", 587, "smtp port")
+	flag.StringVar(&config.smtp.username, "smtpusername", "695a073ec18e9d", "smtp username")
+	flag.StringVar(&config.smtp.password, "smtppassword", "6b16ce62a39ec5", "smtp password")
 
 	flag.Parse()
 }

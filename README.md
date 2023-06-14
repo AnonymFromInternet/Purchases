@@ -15,3 +15,5 @@
 [Jackc/pgx](https://github.com/jackc/pgx) as a sql driver
 
 [Session Manager](https://github.com/alexedwards/scs)
+
+[Mailtrap](https://mailtrap.io/)
