@@ -6,6 +6,7 @@ import (
 	"github.com/AnonymFromInternet/Purchases/internal/models"
 	"github.com/AnonymFromInternet/Purchases/internal/status"
 	"github.com/AnonymFromInternet/Purchases/internal/transactionStatus"
+	"github.com/AnonymFromInternet/Purchases/internal/urlsigner"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
@@ -345,5 +346,25 @@ func (application *application) handlerGetForgetPassword(w http.ResponseWriter, 
 	if err != nil {
 		application.errorLog.Println("cannot render template forget-password :", err)
 		return
+	}
+}
+
+func (application *application) handlerGetResetPassword(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("handlerGetResetPassword()")
+	requestURL := r.RequestURI
+	token := fmt.Sprintf("%s%s", application.config.frontendURLForPasswordReset, requestURL)
+
+	fmt.Println("requestURL :", requestURL)
+
+	signer := urlsigner.Signer{
+		Secret: []byte(application.config.secretKeyForPasswordReset),
+	}
+
+	isTokenValid := signer.IsTokenValid(token)
+
+	if !isTokenValid {
+		_, _ = w.Write([]byte("invalid"))
+	} else {
+		_, _ = w.Write([]byte("valid"))
 	}
 }

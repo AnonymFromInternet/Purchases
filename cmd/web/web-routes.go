@@ -26,6 +26,7 @@ func (application *application) routes() http.Handler {
 	mux.Get("/login", application.handlerGetLoginPage)
 	mux.Get("/logout", application.handlerPostLogoutPage)
 	mux.Get("/forget-password", application.handlerGetForgetPassword)
+	mux.Get("/reset-password", application.handlerGetResetPassword)
 
 	mux.Post("/payment-succeeded-buy-once", application.handlerPostPaymentSucceededByOnce)
 	mux.Post("/login", application.handlerPostLoginPage)

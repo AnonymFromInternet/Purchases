@@ -35,6 +35,8 @@ type config struct {
 		secretKey string
 		publicKey string
 	}
+	secretKeyForPasswordReset   string
+	frontendURLForPasswordReset string
 }
 
 type application struct {
@@ -78,6 +80,8 @@ func setAndParseFlags(config *config) {
 	flag.StringVar(&config.env, "env", "development", "Application environment{development|production}")
 	flag.StringVar(&config.api, "api", "http://localhost:4001", "URL to api")
 	flag.StringVar(&config.db.dataSourceName, "dsn", "host=localhost port=5432 dbname=postgres user=postgres password=", "DSN")
+	flag.StringVar(&config.secretKeyForPasswordReset, "secretkey", "reset", "smtp password")
+	flag.StringVar(&config.frontendURLForPasswordReset, "frontendURL", "http://localhost:4000", "frontend URL")
 
 	flag.Parse()
 }
