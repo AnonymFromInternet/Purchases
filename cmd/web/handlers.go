@@ -363,6 +363,13 @@ func (application *application) handlerGetResetPassword(w http.ResponseWriter, r
 		return
 	}
 
+	isTokenActual := signer.IsTokenActual(fullURL, 15)
+	if !isTokenActual {
+		_, _ = w.Write([]byte("This link is already too old. Please go to the login page and reset the password again"))
+
+		return
+	}
+
 	data := make(map[string]interface{})
 	data["email"] = r.URL.Query().Get("email")
 
