@@ -250,6 +250,78 @@ func (model *DBModel) GetAllSales() ([]*Order, error) {
 			left join transactions t on (o.transaction_id = t.id)
 			left join customers c on (o.customer_id = c.id)
 		where
+		    w.is_recurring = false
+		
+		order by
+			o.created_at desc
+	`
+
+	rows, err := model.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+
+		}
+	}(rows)
+
+	var orders []*Order
+
+	for rows.Next() {
+		var order Order
+
+		err = rows.Scan(
+			&order.ID,
+			&order.WidgetId,
+			&order.TransactionId,
+			&order.StatusId,
+			&order.Quantity,
+			&order.Amount,
+			&order.CustomerID,
+			&order.CreatedAt,
+			&order.UpdatedAt,
+			&order.Widget.ID,
+			&order.Widget.Name,
+			&order.Transaction.ID,
+			&order.Transaction.Amount,
+			&order.Transaction.Currency,
+			&order.Transaction.LastFour,
+			&order.Transaction.ExpiryMonth,
+			&order.Transaction.ExpiryYear,
+			&order.Transaction.PaymentIntent,
+			&order.Transaction.BankReturnCode,
+			&order.Customer.ID,
+			&order.Customer.FirstName,
+			&order.Customer.LastName,
+			&order.Customer.Email,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		orders = append(orders, &order)
+	}
+
+	return orders, nil
+}
+
+// GetAllSubscriptions gets all rows from the orders table with the condition in query
+func (model *DBModel) GetAllSubscriptions() ([]*Order, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	const query = `
+		select o.id, o.widget_id, o.transaction_id, o.status_id, o.quantity, o.amount, o.customer_id,
+		o.created_at, o.updated_at, w.id, w.name, t.id, t.amount, t.currency, t.last_four,
+		t.expiry_month, t.expiry_year, t.payment_intent, t.bank_return_code, c.id, c.first_name, c.last_name, c.email
+		from
+			orders o
+			left join widgets w on (o.widget_id = w.id)
+			left join transactions t on (o.transaction_id = t.id)
+			left join customers c on (o.customer_id = c.id)
+		where
 		    w.is_recurring = true
 		
 		order by

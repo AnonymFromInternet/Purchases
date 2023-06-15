@@ -32,6 +32,7 @@ func (application *application) routes() http.Handler {
 
 		chiRouter.Post("/payment-succeeded-virtual-terminal", application.handlerPostPaymentSucceededVirtualTerminal)
 		chiRouter.Post("/all-sales", application.handlerPostAllSales)
+		chiRouter.Post("/all-subscriptions", application.handlerPostAllSubscriptions)
 	})
 
 	return mux

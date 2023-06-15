@@ -430,5 +430,24 @@ func (application *application) handlerPostAllSales(w http.ResponseWriter, r *ht
 		return
 	}
 
+	if len(allSales) < 1 {
+		allSales = make([]*models.Order, 0)
+	}
+
 	application.convertToJsonAndSend(allSales, w)
+}
+
+func (application *application) handlerPostAllSubscriptions(w http.ResponseWriter, r *http.Request) {
+	allSubscriptions, err := application.DB.GetAllSubscriptions()
+	if err != nil {
+		application.errorLog.Println("cannot get all subscriptions from database :", err)
+		application.sendBadRequest(w, r, err)
+		return
+	}
+
+	if len(allSubscriptions) < 1 {
+		allSubscriptions = make([]*models.Order, 0)
+	}
+
+	application.convertToJsonAndSend(allSubscriptions, w)
 }

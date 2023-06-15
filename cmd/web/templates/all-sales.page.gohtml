@@ -25,7 +25,6 @@
 
 {{define "js"}}
     <script>
-        console.log('API IS :', "{{.Api}}")
         document.addEventListener("DOMContentLoaded", () => {
             const token = localStorage.getItem("token")
             const tableBody = document.getElementById('sales_table').getElementsByTagName('tbody')[0]
@@ -50,26 +49,34 @@
         })
 
         function appendDataFromResponseIntoTable(result) {
-            result.forEach(item => {
-                const tableBody = document.getElementById('sales_table').getElementsByTagName('tbody')[0]
+            const tableBody = document.getElementById('sales_table').getElementsByTagName('tbody')[0]
 
+            if (result.length !== 0) {
+                result.forEach(item => {
+                    const newRow = tableBody.insertRow()
+
+                    let newCell = newRow.insertCell()
+                    newCell.innerHTML = `<a href="/admin/sales/${item.id}">Order ${item.id}</a>`
+
+                    newCell = newRow.insertCell()
+                    let node = document.createTextNode(`${item.customer.lastName} ${item.customer.firstName}`)
+                    newCell.appendChild(node)
+
+                    newCell = newRow.insertCell()
+                    node = document.createTextNode(item.widget.name)
+                    newCell.appendChild(node)
+
+                    newCell = newRow.insertCell()
+                    node = document.createTextNode(`$${parseInt(item.transaction.amount) / 100}`)
+                    newCell.appendChild(node)
+                })
+            } else {
                 const newRow = tableBody.insertRow()
-
                 let newCell = newRow.insertCell()
-                newCell.innerHTML = `<a href="/admin/sales/${item.id}">Order ${item.id}</a>`
 
-                newCell = newRow.insertCell()
-                let node = document.createTextNode(`${item.customer.lastName} ${item.customer.firstName}`)
-                newCell.appendChild(node)
-
-                newCell = newRow.insertCell()
-                node = document.createTextNode(item.widget.name)
-                newCell.appendChild(node)
-
-                newCell = newRow.insertCell()
-                node = document.createTextNode(`$${parseInt(item.transaction.amount) / 100}`)
-                newCell.appendChild(node)
-            })
+                newCell.setAttribute('colspan', "4")
+                newCell.innerHTML = 'No data available'
+            }
         }
     </script>
 {{end}}

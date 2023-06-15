@@ -5,9 +5,78 @@
 {{end}}
 
 {{define "content"}}
-    <h2>All Subscriptions</h2>
+    <h2 class="mt-5">All Subscriptions</h2>
+
+    <table id="subscriptions_table" class="table">
+        <thead>
+        <tr>
+            <th scope="col">Transaction</th>
+            <th scope="col">Customer</th>
+            <th scope="col">Product</th>
+            <th scope="col">Amount</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        </tbody>
+    </table>
 {{end}}
 
 {{define "js"}}
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem("token")
+            const requestOptions = {
+                method: 'post',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer '+token,
+                },
+            }
 
+            fetch("{{.Api}}/api/admin/all-subscriptions", requestOptions)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.error) {
+                        // show an error
+                    } else {
+                        appendDataFromResponseIntoTable(result)
+                    }
+                })
+        })
+
+        function appendDataFromResponseIntoTable(result) {
+            const tableBody = document.getElementById('subscriptions_table').getElementsByTagName('tbody')[0]
+
+            if (result.length !== 0) {
+                result.forEach(item => {
+                    const newRow = tableBody.insertRow()
+
+                    let newCell = newRow.insertCell()
+                    newCell.innerHTML = `<a href="/admin/subscriptions/${item.id}">Order ${item.id}</a>`
+
+                    // TODO: Возможно нужно будет исправить содержимое
+                    newCell = newRow.insertCell()
+                    let node = document.createTextNode(`${item.customer.lastName} ${item.customer.firstName}`)
+                    newCell.appendChild(node)
+
+                    newCell = newRow.insertCell()
+                    node = document.createTextNode(item.widget.name)
+                    newCell.appendChild(node)
+
+                    newCell = newRow.insertCell()
+                    node = document.createTextNode(`$${parseInt(item.transaction.amount) / 100}`)
+                    newCell.appendChild(node)
+                })
+            } else {
+                const newRow = tableBody.insertRow()
+                let newCell = newRow.insertCell()
+
+                newCell.setAttribute('colspan', "4")
+                newCell.innerHTML = 'No data available'
+            }
+        }
+    </script>
 {{end}}
