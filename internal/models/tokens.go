@@ -125,6 +125,9 @@ func GenerateToken(userID int, ttl time.Duration, scope string) (*Token, error) 
 // }
 
 func (model *DBModel) InsertToken(tokenHash []byte, user *User) error {
+	// TODO: Пока что не работает функционал в кейсе, если пользователь залогинен, выключить приложение, потом запустить
+	//  снова. То, даже несмотря на наличие токена в локалсторадже и базе данных, проверка не происходит корректно
+	//  Сейчас просто идет сохранение нового токена каждый раз при входе (без проверки токена на expiry)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
