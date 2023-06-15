@@ -421,3 +421,14 @@ func (application *application) handlerPostSetNewPassword(w http.ResponseWriter,
 
 	application.convertToJsonAndSend(response, w)
 }
+
+func (application *application) handlerGetAllSales(w http.ResponseWriter, r *http.Request) {
+	allSales, err := application.DB.GetAllSales()
+	if err != nil {
+		application.errorLog.Println("cannot get all sales from database :", err)
+		application.sendBadRequest(w, r, err)
+		return
+	}
+
+	application.convertToJsonAndSend(allSales, w)
+}
