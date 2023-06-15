@@ -25,6 +25,7 @@ func (application *application) routes() http.Handler {
 	mux.Post("/api/authenticate", application.handlerPostCreateAuthToken)
 	mux.Post("/api/is-authenticated", application.handlerPostIsAuthenticated)
 	mux.Post("/api/forget-password", application.handlerPostForgetPassword)
+	mux.Post("/api/set-new-password", application.handlerPostSetNewPassword)
 
 	mux.Route("/api/admin", func(chiRouter chi.Router) {
 		chiRouter.Use(application.AuthMiddleware)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"database/sql"
+	"golang.org/x/crypto/bcrypt"
 	"strings"
 	"time"
 )
@@ -296,4 +297,30 @@ type TransactionData struct {
 	ExpiryYear      uint64
 	BankReturnCode  string
 	WidgetId        int
+}
+
+func (model *DBModel) SetNewPassword(newPassword, email string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(newPassword), 12)
+
+	const stmt = `
+		update users
+		set password = $1
+		where email = $2
+	`
+
+	_, err = model.DB.ExecContext(
+		ctx,
+		stmt,
+		passwordHash,
+		email,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

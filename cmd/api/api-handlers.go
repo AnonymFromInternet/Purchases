@@ -392,3 +392,32 @@ func (application *application) handlerPostPaymentSucceededVirtualTerminal(w htt
 	application.convertToJsonAndSend(transaction, w)
 
 }
+
+func (application *application) handlerPostSetNewPassword(w http.ResponseWriter, r *http.Request) {
+	var payload struct {
+		Email       string `json:"email"`
+		NewPassword string `json:"newPassword"`
+	}
+
+	application.readJSON(w, r, &payload)
+
+	var response struct {
+		Error   bool   `json:"error"`
+		Message string `json:"message"`
+	}
+
+	err := application.DB.SetNewPassword(payload.NewPassword, payload.Email)
+	if err != nil {
+		application.errorLog.Println("cannot set new password :", err)
+		response.Error = true
+		response.Message = "an error by the password reset"
+		application.convertToJsonAndSend(response, w)
+
+		return
+	}
+
+	response.Error = false
+	response.Message = "password reset was successful"
+
+	application.convertToJsonAndSend(response, w)
+}

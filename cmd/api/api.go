@@ -79,10 +79,10 @@ func setAndParseFlags(config *config) {
 	flag.StringVar(&config.env, "env", "development", "Application environment{development|production|maintenance}")
 	flag.StringVar(&config.db.dataSourceName, "dsn", "host=localhost port=5432 dbname=postgres user=postgres password=", "DSN")
 
-	flag.StringVar(&config.smtp.host, "smtphost", "smtp.mailtrap.io", "smtp host")
+	flag.StringVar(&config.smtp.host, "smtphost", "sandbox.smtp.mailtrap.io", "smtp host")
 	flag.IntVar(&config.smtp.port, "smtpport", 587, "smtp port")
-	flag.StringVar(&config.smtp.username, "smtpusername", "695a073ec18e9d", "smtp username")
-	flag.StringVar(&config.smtp.password, "smtppassword", "6b16ce62a39ec5", "smtp password")
+	flag.StringVar(&config.smtp.username, "smtpusername", "2bd6b713077f69", "smtp username")
+	flag.StringVar(&config.smtp.password, "smtppassword", "9770e176b68323", "smtp password")
 	flag.StringVar(&config.secretKeyForPasswordReset, "secretkey", "reset", "smtp password")
 	flag.StringVar(&config.frontendURLForPasswordReset, "frontendURL", "http://localhost:4000", "frontend URL")
 
