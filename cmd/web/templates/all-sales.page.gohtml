@@ -25,6 +25,7 @@
 
 {{define "js"}}
     <script>
+        console.log('API IS :', "{{.Api}}")
         document.addEventListener("DOMContentLoaded", () => {
             const token = localStorage.getItem("token")
             const tableBody = document.getElementById('sales_table').getElementsByTagName('tbody')[0]
@@ -40,8 +41,35 @@
             fetch("{{.Api}}/api/admin/all-sales", requestOptions)
                 .then(response => response.json())
                 .then(result => {
-                    console.log('result :', result)
+                    if (result.error) {
+                        // show an error
+                    } else {
+                        appendDataFromResponseIntoTable(result)
+                    }
                 })
         })
+
+        function appendDataFromResponseIntoTable(result) {
+            result.forEach(item => {
+                const tableBody = document.getElementById('sales_table').getElementsByTagName('tbody')[0]
+
+                const newRow = tableBody.insertRow()
+
+                let newCell = newRow.insertCell()
+                newCell.innerHTML = `<a href="/admin/sales/${item.id}">Order ${item.id}</a>`
+
+                newCell = newRow.insertCell()
+                let node = document.createTextNode(`${item.customer.lastName} ${item.customer.firstName}`)
+                newCell.appendChild(node)
+
+                newCell = newRow.insertCell()
+                node = document.createTextNode(item.widget.name)
+                newCell.appendChild(node)
+
+                newCell = newRow.insertCell()
+                node = document.createTextNode(`$${parseInt(item.transaction.amount) / 100}`)
+                newCell.appendChild(node)
+            })
+        }
     </script>
 {{end}}

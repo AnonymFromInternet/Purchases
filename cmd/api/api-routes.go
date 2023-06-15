@@ -31,7 +31,7 @@ func (application *application) routes() http.Handler {
 		chiRouter.Use(application.AuthMiddleware)
 
 		chiRouter.Post("/payment-succeeded-virtual-terminal", application.handlerPostPaymentSucceededVirtualTerminal)
-		chiRouter.Get("/all-sales", application.handlerGetAllSales)
+		chiRouter.Post("/all-sales", application.handlerPostAllSales)
 	})
 
 	return mux

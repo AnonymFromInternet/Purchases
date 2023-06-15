@@ -250,7 +250,7 @@ func (model *DBModel) GetAllSales() ([]*Order, error) {
 			left join transactions t on (o.transaction_id = t.id)
 			left join customers c on (o.customer_id = c.id)
 		where
-		    w.is_recurring = false
+		    w.is_recurring = true
 		
 		order by
 			o.created_at desc
