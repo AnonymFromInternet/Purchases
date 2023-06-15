@@ -33,12 +33,18 @@ func getConvertedPrice(notConvertedPrice int) string {
 //go:embed templates
 var templateFS embed.FS
 
-func (application *application) addDefaultData(data *templateData, r *http.Request) *templateData {
-	data.Api = application.config.api
-	data.StripePublicKey = application.config.stripe.publicKey
-	data.StripeSecretKey = application.config.stripe.secretKey
+func (application *application) addDefaultData(templateData *templateData, r *http.Request) *templateData {
+	templateData.Api = application.config.api
+	templateData.StripePublicKey = application.config.stripe.publicKey
+	templateData.StripeSecretKey = application.config.stripe.secretKey
 
-	return data
+	if application.SessionManager.Exists(r.Context(), "userID") {
+		templateData.IsAuthenticated = true
+	} else {
+		templateData.IsAuthenticated = false
+	}
+
+	return templateData
 }
 
 func (application *application) renderTemplate(w http.ResponseWriter, r *http.Request, pageName string, td *templateData, partials ...string) error {

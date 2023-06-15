@@ -40,13 +40,37 @@
                                 <li><a class="dropdown-item" href="/gold-plan">Subscription</a></li>
                             </ul>
                         </li>
+
+                        {{if .IsAuthenticated}}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Admin
+                                </a>
+
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="/admin/virtual-terminal">Virtual Terminal</a></li>
+
+                                    <li><a class="dropdown-item" href="/admin/all-sales">All Sales</a></li>
+
+                                    <li><a class="dropdown-item" href="/admin/all-subscriptions">All Subscriptions</a></li>
+                                </ul>
+                            </li>
+                        {{ end }}
                     </ul>
 
-                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                        <li id="login_link" class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="/login">Login</a>
-                        </li>
-                    </ul>
+                    {{if .IsAuthenticated}}
+                        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                            <li id="login_link" class="nav-item">
+                                <a class="nav-link active" aria-current="page" href="/logout">Logout</a>
+                            </li>
+                        </ul>
+                    {{else}}
+                        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                            <li id="login_link" class="nav-item">
+                                <a class="nav-link active" aria-current="page" href="/login">Login</a>
+                            </li>
+                        </ul>
+                    {{end}}
                 </div>
             </div>
         </nav>
@@ -62,15 +86,6 @@
     <script>
         let virtualTerminal = document.getElementById('virtual_terminal_link')
         let loginLink = document.getElementById('login_link')
-
-        document.addEventListener("DOMContentLoaded", () => {
-            if (localStorage.getItem("token")) {
-                virtualTerminal.classList.remove('d-none')
-                loginLink.innerHTML = '<a class="nav-link active" onclick="onLogout()" aria-current="page" href="#">Logout</a>'
-            } else {
-                loginLink.innerHTML = '<a class="nav-link active" aria-current="page" href="/login">Login</a>'
-            }
-        })
     </script>
 
     {{block "js" .}}

@@ -74,7 +74,7 @@ func (application *application) handlerPostLoginPage(w http.ResponseWriter, r *h
 	isPasswordValid := application.isPasswordValid(user.Password, password)
 	if !isPasswordValid {
 		application.errorLog.Println("invalid password")
-		http.Redirect(w, r, "login", http.StatusSeeOther)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
