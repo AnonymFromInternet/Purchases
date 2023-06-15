@@ -7,6 +7,7 @@
 #### and so on...
 
 #### Variable STRIPE_SECRET_KEY in Makefile should be initialized for the correct work.
+#### Also you should have a mailtrap account, and set values in main files for flags username and password, which will be given from mailtrap.
 #### Uses:
 [Postgres](https://www.postgresql.org/)
 
