@@ -379,3 +379,21 @@ func (application *application) handlerGetResetPassword(w http.ResponseWriter, r
 		return
 	}
 }
+
+func (application *application) handlerGetAllSales(w http.ResponseWriter, r *http.Request) {
+	err := application.renderTemplate(w, r, "all-sales", &templateData{}, "stripe-js")
+	if err != nil {
+		application.errorLog.Println("cannot render the all-sales template :", err)
+
+		return
+	}
+}
+
+func (application *application) handlerGetAllSubscriptions(w http.ResponseWriter, r *http.Request) {
+	err := application.renderTemplate(w, r, "all-subscriptions", &templateData{}, "stripe-js")
+	if err != nil {
+		application.errorLog.Println("cannot render the all-sales template :", err)
+
+		return
+	}
+}
