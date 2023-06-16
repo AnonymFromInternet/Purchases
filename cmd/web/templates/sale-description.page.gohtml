@@ -1,0 +1,39 @@
+{{template "base" .}}
+
+{{define "title"}}
+    Sale Description
+{{end}}
+
+{{define "content"}}
+    <h2 class="mt-5">Sale</h2>
+{{end}}
+
+{{define "js"}}
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem("token")
+            const id = location.pathname.split("/").pop()
+
+            const requestOptions = {
+                method: 'post',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer '+ token,
+                },
+            }
+
+            if (id) {
+                fetch("{{.Api}}/api/admin/sale-description/" + id, requestOptions)
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.error) {
+                            // show an error
+                        } else {
+
+                        }
+                    })
+            }
+        })
+    </script>
+{{end}}

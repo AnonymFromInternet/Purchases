@@ -451,3 +451,29 @@ func (application *application) handlerPostAllSubscriptions(w http.ResponseWrite
 
 	application.convertToJsonAndSend(allSubscriptions, w)
 }
+
+func (application *application) handlerPostSubscriptionDescription(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	idAsInt, err := strconv.Atoi(id)
+	if err != nil {
+		application.errorLog.Println("cannot convert id into int :", err)
+		return
+	}
+
+	order, err := application.DB.GetSaleByID(idAsInt)
+	if err != nil {
+		application.errorLog.Println("cannot get order from database with given id :", err)
+		application.sendBadRequest(w, r, err)
+		return
+	}
+
+	var response struct {
+		Error bool         `json:"error"`
+		Order models.Order `json:"order"`
+	}
+
+	response.Error = false
+	response.Order = order
+
+	application.convertToJsonAndSend(response, w)
+}

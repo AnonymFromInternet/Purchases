@@ -1,0 +1,40 @@
+{{template "base" .}}
+
+{{define "title"}}
+    Subscription Description
+{{end}}
+
+{{define "content"}}
+    <h2 class="mt-5">Subscription</h2>
+{{end}}
+
+{{define "js"}}
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem("token")
+            const id = location.pathname.split("/").pop()
+
+            const requestOptions = {
+                method: 'post',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer '+ token,
+                },
+            }
+
+            if (id) {
+                fetch("{{.Api}}/api/admin/subscription-description/" + id, requestOptions)
+                    .then(response => response.json())
+                    .then(result => {
+                        console.log("result is :", result)
+                        if (result.error) {
+                            // show an error
+                        } else {
+
+                        }
+                    })
+            }
+        })
+    </script>
+{{end}}

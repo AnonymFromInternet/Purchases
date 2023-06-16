@@ -16,6 +16,8 @@ func (application *application) routes() http.Handler {
 		chiRouter.Get("/virtual-terminal", application.handlerGetVirtualTerminal)
 		chiRouter.Get("/all-sales", application.handlerGetAllSales)
 		chiRouter.Get("/all-subscriptions", application.handlerGetAllSubscriptions)
+		chiRouter.Get("/sales/{id}", application.handlerGetSaleDescription)
+		chiRouter.Get("/subscriptions/{id}", application.handlerGetSubscriptionsDescription)
 	})
 
 	mux.Get("/main", application.handlerGetMainPage)

@@ -379,6 +379,58 @@ func (model *DBModel) GetAllSubscriptions() ([]*Order, error) {
 	return orders, nil
 }
 
+func (model *DBModel) GetSaleByID(id int) (Order, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	const query = `
+		select o.id, o.widget_id, o.transaction_id, o.status_id, o.quantity, o.amount, o.customer_id,
+		o.created_at, o.updated_at, w.id, w.name, t.id, t.amount, t.currency, t.last_four,
+		t.expiry_month, t.expiry_year, t.payment_intent, t.bank_return_code, c.id, c.first_name, c.last_name, c.email
+		from
+			orders o
+			left join widgets w on (o.widget_id = w.id)
+			left join transactions t on (o.transaction_id = t.id)
+			left join customers c on (o.customer_id = c.id)
+		where
+		    o.id = $1
+	`
+
+	row := model.DB.QueryRowContext(ctx, query, id)
+
+	var order Order
+	err := row.Scan(
+		&order.ID,
+		&order.WidgetId,
+		&order.TransactionId,
+		&order.StatusId,
+		&order.Quantity,
+		&order.Amount,
+		&order.CustomerID,
+		&order.CreatedAt,
+		&order.UpdatedAt,
+		&order.Widget.ID,
+		&order.Widget.Name,
+		&order.Transaction.ID,
+		&order.Transaction.Amount,
+		&order.Transaction.Currency,
+		&order.Transaction.LastFour,
+		&order.Transaction.ExpiryMonth,
+		&order.Transaction.ExpiryYear,
+		&order.Transaction.PaymentIntent,
+		&order.Transaction.BankReturnCode,
+		&order.Customer.ID,
+		&order.Customer.FirstName,
+		&order.Customer.LastName,
+		&order.Customer.Email,
+	)
+	if err != nil {
+		return order, err
+	}
+
+	return order, nil
+}
+
 // Models for the postgres db
 
 type Widget struct {

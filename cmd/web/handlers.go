@@ -397,3 +397,29 @@ func (application *application) handlerGetAllSubscriptions(w http.ResponseWriter
 		return
 	}
 }
+
+func (application *application) handlerGetSaleDescription(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	idAsInt, err := strconv.Atoi(id)
+
+	widget, err := application.DB.GetWidgetByID(idAsInt)
+	data := make(map[string]interface{})
+
+	data["widget"] = widget
+
+	err = application.renderTemplate(w, r, "sale-description", &templateData{Data: data}, "stripe-js")
+	if err != nil {
+		application.errorLog.Println("cannot render the all-sales template :", err)
+
+		return
+	}
+}
+
+func (application *application) handlerGetSubscriptionsDescription(w http.ResponseWriter, r *http.Request) {
+	err := application.renderTemplate(w, r, "subscription-description", &templateData{}, "stripe-js")
+	if err != nil {
+		application.errorLog.Println("cannot render the all-sales template :", err)
+
+		return
+	}
+}
