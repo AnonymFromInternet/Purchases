@@ -431,6 +431,24 @@ func (model *DBModel) GetSaleByID(id int) (Order, error) {
 	return order, nil
 }
 
+func (model *DBModel) UpdateOrderStatus(newRefundedStatusID, orderID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	const stmt = `
+		update orders
+		set status_id = $1
+		where id = $2
+	`
+
+	_, err := model.DB.ExecContext(ctx, stmt, newRefundedStatusID, orderID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Models for the postgres db
 
 type Widget struct {

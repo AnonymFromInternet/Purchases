@@ -14,6 +14,7 @@
             <th scope="col">Customer</th>
             <th scope="col">Product</th>
             <th scope="col">Amount</th>
+            <th scope="col">Status</th>
         </tr>
         </thead>
 
@@ -69,6 +70,13 @@
                     newCell = newRow.insertCell()
                     node = document.createTextNode(`$${parseInt(item.transaction.amount) / 100}`)
                     newCell.appendChild(node)
+
+                    newCell = newRow.insertCell()
+                    if (item.statusId !== 1) {
+                        newCell.innerHTML = `<span class="badge bg-danger">Refunded</span>`
+                    } else {
+                        newCell.innerHTML = `<span class="badge bg-success">Charged</span>`
+                    }
                 })
             } else {
                 const newRow = tableBody.insertRow()

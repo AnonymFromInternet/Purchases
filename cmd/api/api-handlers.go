@@ -501,7 +501,13 @@ func (application *application) handlerPostRefund(w http.ResponseWriter, r *http
 		return
 	}
 
-	// Delete sale or subscription from database
+	// Update status of sale or subscription in database
+	err = application.DB.UpdateOrderStatus(2, chargeToRefund.ID)
+	if err != nil {
+		application.errorLog.Println("cannot update order status :", err)
+		application.sendBadRequest(w, r, err)
+		return
+	}
 
 	var response AnswerPayload
 	response.Error = false
