@@ -5,7 +5,15 @@
 {{end}}
 
 {{define "content"}}
-    <h2 class="mt-5">Subscription</h2>
+    <div class="alert alert-danger text-center d-none" id="message"></div>
+
+    <h2 class="mt-5">Subscription Details</h2>
+    <hr>
+
+    <p id="user_name"></p>
+    <p id="email"></p>
+    <p id="subscription_name"></p>
+    <p id="price"></p>
 {{end}}
 
 {{define "js"}}
@@ -29,12 +37,24 @@
                     .then(result => {
                         console.log("result is :", result)
                         if (result.error) {
-                            // show an error
+                            showErrorMessage(result.message)
                         } else {
-
+                            initHTMLValues(result.order)
                         }
                     })
             }
         })
+
+        function initHTMLValues(order) {
+            document.getElementById('user_name').innerHTML = `Client Name: ${order.customer.firstName} ${order.customer.lastName}`
+            document.getElementById('email').innerHTML = `Email: ${order.customer.email}`
+            document.getElementById('subscription_name').innerHTML = `Subscription Type: ${order.widget.name}`
+            document.getElementById('price').innerHTML = `Price: ${parseInt(order.amount) / 100}`
+        }
+
+        function showErrorMessage(errorMessage) {
+            document.getElementById('messages').classList.remove('d-none')
+            document.getElementById('message').innerHTML = `${errorMessage}`
+        }
     </script>
 {{end}}
