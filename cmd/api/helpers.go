@@ -22,8 +22,8 @@ type AnswerPayload struct {
 	Token   *models.Token `json:"token"` // TODO: Зачем указатель?
 }
 
-// readJSON check if request size is no greater than maxSizeInBytes and decode payload from request into arg
-func (application *application) readJSON(w http.ResponseWriter, r *http.Request, ptrToData interface{}) {
+// readJSONInto check if request size is no greater than maxSizeInBytes and decode payload from request into arg
+func (application *application) readJSONInto(ptrToData interface{}, w http.ResponseWriter, r *http.Request) {
 	maxSizeInBytes := 1048576
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxSizeInBytes))
 	dec := json.NewDecoder(r.Body)

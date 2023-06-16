@@ -62,7 +62,7 @@ func (application *application) handlerGetWidgetById(w http.ResponseWriter, r *h
 func (application *application) handlerPostCreateAuthToken(w http.ResponseWriter, r *http.Request) {
 	var loginPagePayload LoginPagePayload
 
-	application.readJSON(w, r, &loginPagePayload)
+	application.readJSONInto(&loginPagePayload, w, r)
 
 	user, err := application.DB.GetUserByEmail(loginPagePayload.Email)
 	if err != nil {
@@ -105,7 +105,7 @@ func (application *application) handlerPostForgetPassword(w http.ResponseWriter,
 		Email string `json:"email"`
 	}
 
-	application.readJSON(w, r, &payload)
+	application.readJSONInto(&payload, w, r)
 
 	// verify if that email exists in the database
 	_, err := application.DB.GetUserByEmail(payload.Email)
@@ -350,7 +350,7 @@ func (application *application) handlerPostIsAuthenticated(w http.ResponseWriter
 func (application *application) handlerPostPaymentSucceededVirtualTerminal(w http.ResponseWriter, r *http.Request) {
 	var transactionData models.TransactionData
 
-	application.readJSON(w, r, &transactionData)
+	application.readJSONInto(&transactionData, w, r)
 
 	card := cards.Card{
 		PublicKey: application.config.stripe.publicKey,
@@ -399,7 +399,7 @@ func (application *application) handlerPostSetNewPassword(w http.ResponseWriter,
 		NewPassword string `json:"newPassword"`
 	}
 
-	application.readJSON(w, r, &payload)
+	application.readJSONInto(&payload, w, r)
 
 	var response struct {
 		Error   bool   `json:"error"`
@@ -474,6 +474,38 @@ func (application *application) handlerPostSubscriptionDescription(w http.Respon
 
 	response.Error = false
 	response.Order = order
+
+	application.convertToJsonAndSend(response, w)
+}
+
+func (application *application) handlerPostRefund(w http.ResponseWriter, r *http.Request) {
+	var chargeToRefund struct {
+		ID            int    `json:"id"`
+		PaymentIntent string `json:"paymentIntent"`
+		Amount        int    `json:"amount"`
+		Currency      string `json:"currency"`
+	}
+
+	application.readJSONInto(&chargeToRefund, w, r)
+
+	card := cards.Card{
+		PublicKey: application.config.stripe.publicKey,
+		SecretKey: application.config.stripe.secretKey,
+		Currency:  chargeToRefund.Currency,
+	}
+
+	err := card.Refund(chargeToRefund.PaymentIntent, chargeToRefund.Amount)
+	if err != nil {
+		application.errorLog.Println("cannot refund a charge :", err)
+		application.sendBadRequest(w, r, err)
+		return
+	}
+
+	// Delete sale or subscription from database
+
+	var response AnswerPayload
+	response.Error = false
+	response.Message = "Refund was successful"
 
 	application.convertToJsonAndSend(response, w)
 }

@@ -6,6 +6,15 @@
 
 {{define "content"}}
     <h2 class="mt-5">Sale</h2>
+    <hr>
+
+    <p id="user_name"></p>
+    <p id="email"></p>
+    <p id="subscription_name"></p>
+    <p id="price"></p>
+
+    <a href="/admin/all-sales" class="btn btn-info">Go to all Subscriptions</a>
+    <a href="/admin/refund" class="btn btn-warning">Refund Subscription</a>
 {{end}}
 
 {{define "js"}}
@@ -28,12 +37,24 @@
                     .then(response => response.json())
                     .then(result => {
                         if (result.error) {
-                            // show an error
+                            showErrorMessage(result.error)
                         } else {
-
+                            initHTMLValues(result.order)
                         }
                     })
             }
         })
+
+        function initHTMLValues(order) {
+            document.getElementById('user_name').innerHTML = `Client Name: ${order.customer.firstName} ${order.customer.lastName}`
+            document.getElementById('email').innerHTML = `Email: ${order.customer.email}`
+            document.getElementById('subscription_name').innerHTML = `Subscription Type: ${order.widget.name}`
+            document.getElementById('price').innerHTML = `Price: ${parseInt(order.amount) / 100}`
+        }
+
+        function showErrorMessage(errorMessage) {
+            document.getElementById('messages').classList.remove('d-none')
+            document.getElementById('message').innerHTML = `${errorMessage}`
+        }
     </script>
 {{end}}
