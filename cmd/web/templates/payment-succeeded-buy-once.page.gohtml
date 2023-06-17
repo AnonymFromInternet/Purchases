@@ -15,8 +15,8 @@
     <p>Customer Name : {{$tmplData.FirstName}} {{$tmplData.LastName}}</p>
     <p>Email : {{$tmplData.Email}}</p>
     <p>Payment Method : {{$tmplData.PaymentMethod}}</p>
-    <p>Amount : {{getConvertedPrice $tmplData.PaymentAmount}}</p>
-    <p>Currency : {{$tmplData.PaymentCurrency}}</p>
+    <p>Amount : {{getConvertedPrice $tmplData.Amount}}</p>
+    <p>Currency : {{$tmplData.Currency}}</p>
 
     <p>Last four Card numbers: {{$tmplData.LastFour}}</p>
     <p>Expr Date : {{$tmplData.ExpiryMonth}}/{{$tmplData.ExpiryYear}}</p>

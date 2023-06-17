@@ -528,16 +528,16 @@ type Customer struct {
 }
 
 type TransactionData struct {
-	Email           string
-	FirstName       string
-	LastName        string
-	PaymentMethod   string
-	PaymentIntent   string
-	PaymentAmount   int
-	PaymentCurrency string
-	LastFour        string
-	ExpiryMonth     uint64
-	ExpiryYear      uint64
-	BankReturnCode  string
-	WidgetId        int
+	Email          string `json:"email"`
+	FirstName      string `json:"firstName"`
+	LastName       string `json:"lastName"`
+	PaymentMethod  string `json:"paymentMethod"`
+	PaymentIntent  string `json:"paymentIntent"`
+	Amount         int    `json:"amount"`
+	Currency       string `json:"currency"`
+	LastFour       string `json:"lastFour"`
+	ExpiryMonth    uint64 `json:"expiryMonth"`
+	ExpiryYear     uint64 `json:"expiryYear"`
+	BankReturnCode string `json:"bankReturnCode"`
+	WidgetId       int    `json:"widgetId"`
 }

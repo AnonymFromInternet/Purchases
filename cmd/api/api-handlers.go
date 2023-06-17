@@ -313,7 +313,7 @@ func (application *application) handlerPostPaymentIntent(w http.ResponseWriter, 
 		Currency:  payload.Currency,
 	}
 
-	paymentIntent, errorMessage, err := card.ChargeCard(payload.Currency, int(amount*100))
+	paymentIntent, errorMessage, err := card.ChargeCard(payload.Currency, int(amount))
 	if err != nil {
 		application.errorLog.Println("cannot get paymentIntent from charge card function", err)
 
@@ -348,9 +348,12 @@ func (application *application) handlerPostIsAuthenticated(w http.ResponseWriter
 }
 
 func (application *application) handlerPostPaymentSucceededVirtualTerminal(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("handlerPostPaymentSucceededVirtualTerminal()")
 	var transactionData models.TransactionData
 
 	application.readJSONInto(&transactionData, w, r)
+
+	fmt.Println("transactionData :", transactionData)
 
 	card := cards.Card{
 		PublicKey: application.config.stripe.publicKey,
@@ -374,8 +377,8 @@ func (application *application) handlerPostPaymentSucceededVirtualTerminal(w htt
 	transactionData.ExpiryYear = paymentMethod.Card.ExpYear
 
 	transaction := models.Transaction{
-		Amount:              transactionData.PaymentAmount,
-		Currency:            transactionData.PaymentCurrency,
+		Amount:              transactionData.Amount,
+		Currency:            transactionData.Currency,
 		LastFour:            transactionData.LastFour,
 		BankReturnCode:      paymentIntent.Charges.Data[0].ID,
 		TransactionStatusID: transactionStatus.Cleared,

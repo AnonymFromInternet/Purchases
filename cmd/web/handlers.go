@@ -161,8 +161,8 @@ func (application *application) handlerPostPaymentSucceededByOnce(w http.Respons
 	customerID := application.saveCustomerGetCustomerID(tmplData.FirstName, tmplData.LastName, tmplData.Email)
 
 	transaction := models.Transaction{
-		Amount:              tmplData.PaymentAmount,
-		Currency:            tmplData.PaymentCurrency,
+		Amount:              tmplData.Amount,
+		Currency:            tmplData.Currency,
 		LastFour:            tmplData.LastFour,
 		BankReturnCode:      tmplData.BankReturnCode,
 		TransactionStatusID: transactionStatus.Cleared,
@@ -182,7 +182,7 @@ func (application *application) handlerPostPaymentSucceededByOnce(w http.Respons
 		CustomerID:    customerID,
 		StatusId:      status.Cleared,
 		Quantity:      1,
-		Amount:        tmplData.PaymentAmount,
+		Amount:        tmplData.Amount,
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
 	}
@@ -279,18 +279,18 @@ func (application *application) getTransactionData(r *http.Request) models.Trans
 	expiryYear := pm.Card.ExpYear
 
 	transactionData = models.TransactionData{
-		Email:           formData.Email,
-		FirstName:       formData.FirstName,
-		LastName:        formData.LastName,
-		PaymentMethod:   formData.PaymentMethod,
-		PaymentIntent:   formData.PaymentIntent,
-		PaymentAmount:   formData.PaymentAmount,
-		PaymentCurrency: formData.PaymentCurrency,
-		LastFour:        lastFour,
-		ExpiryMonth:     expiryMonth,
-		ExpiryYear:      expiryYear,
-		BankReturnCode:  pi.Charges.Data[0].ID,
-		WidgetId:        widgetId,
+		Email:          formData.Email,
+		FirstName:      formData.FirstName,
+		LastName:       formData.LastName,
+		PaymentMethod:  formData.PaymentMethod,
+		PaymentIntent:  formData.PaymentIntent,
+		Amount:         formData.Amount,
+		Currency:       formData.Currency,
+		LastFour:       lastFour,
+		ExpiryMonth:    expiryMonth,
+		ExpiryYear:     expiryYear,
+		BankReturnCode: pi.Charges.Data[0].ID,
+		WidgetId:       widgetId,
 	}
 
 	return transactionData
@@ -322,13 +322,13 @@ func (application *application) getFormData(r *http.Request) models.TransactionD
 	}
 
 	formData = models.TransactionData{
-		Email:           email,
-		FirstName:       firstName,
-		LastName:        lastName,
-		PaymentMethod:   paymentMethod,
-		PaymentIntent:   paymentIntent,
-		PaymentAmount:   paymentAmountAsInt,
-		PaymentCurrency: paymentCurrency,
+		Email:         email,
+		FirstName:     firstName,
+		LastName:      lastName,
+		PaymentMethod: paymentMethod,
+		PaymentIntent: paymentIntent,
+		Amount:        paymentAmountAsInt,
+		Currency:      paymentCurrency,
 	}
 
 	return formData
