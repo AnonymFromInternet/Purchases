@@ -117,6 +117,38 @@ func (card *Card) CreateCustomer(paymentMethod, email string) (*stripe.Customer,
 	return newCustomer, "", nil
 }
 
+func (card *Card) Refund(paymentIntent string, amount int) error {
+	stripe.Key = card.SecretKey
+	amountToRefund := int64(amount)
+
+	refundParams := &stripe.RefundParams{
+		Amount:        &amountToRefund,
+		PaymentIntent: &paymentIntent,
+	}
+
+	_, err := refund.New(refundParams)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (card *Card) CancelSubscription(subscriptionID string) error {
+	stripe.Key = card.SecretKey
+
+	params := &stripe.SubscriptionParams{
+		CancelAtPeriodEnd: stripe.Bool(true),
+	}
+
+	_, err := sub.Update(subscriptionID, params)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func getStringFromStripeErrorMessage(code stripe.ErrorCode) string {
 	var message string
 
@@ -140,21 +172,4 @@ func getStringFromStripeErrorMessage(code stripe.ErrorCode) string {
 	}
 
 	return message
-}
-
-func (card *Card) Refund(paymentIntent string, amount int) error {
-	stripe.Key = card.SecretKey
-	amountToRefund := int64(amount)
-
-	refundParams := &stripe.RefundParams{
-		Amount:        &amountToRefund,
-		PaymentIntent: &paymentIntent,
-	}
-
-	_, err := refund.New(refundParams)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

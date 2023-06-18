@@ -10,7 +10,6 @@ import (
 	"github.com/AnonymFromInternet/Purchases/internal/transactionStatus"
 	"github.com/AnonymFromInternet/Purchases/internal/urlsigner"
 	"github.com/go-chi/chi/v5"
-	"github.com/stripe/stripe-go/v72"
 	"net/http"
 	"strconv"
 	"time"
@@ -154,21 +153,16 @@ func (application *application) handlerPostForgetPassword(w http.ResponseWriter,
 }
 
 func (application *application) handlerPostCreateCustomerAndSubscribePlan(w http.ResponseWriter, r *http.Request) {
-	var payload stripePayload
+	var stripePayload stripePayload
 	var err error
-
-	// TODO: should make something with this variable
-	var subscription *stripe.Subscription
-
-	fmt.Println("subscription is here is not initialized yet :", subscription)
 
 	badResponse := jsonResponse{
 		Ok: false,
 	}
 
-	err = json.NewDecoder(r.Body).Decode(&payload)
+	err = json.NewDecoder(r.Body).Decode(&stripePayload)
 	if err != nil {
-		application.errorLog.Println("cannot decode payload", err)
+		application.errorLog.Println("cannot decode stripePayload", err)
 
 		return
 	}
@@ -176,10 +170,10 @@ func (application *application) handlerPostCreateCustomerAndSubscribePlan(w http
 	card := cards.Card{
 		PublicKey: application.config.stripe.publicKey,
 		SecretKey: application.config.stripe.secretKey,
-		Currency:  payload.Currency,
+		Currency:  stripePayload.Currency,
 	}
 
-	newCustomer, errorMessage, err := card.CreateCustomer(payload.PaymentMethod, payload.Email)
+	newCustomer, errorMessage, err := card.CreateCustomer(stripePayload.PaymentMethod, stripePayload.Email)
 	if err != nil {
 		application.errorLog.Println(errorMessage)
 		badResponse.Message = errorMessage
@@ -188,7 +182,7 @@ func (application *application) handlerPostCreateCustomerAndSubscribePlan(w http
 		return
 	}
 
-	subscription, errorMessage, err = card.CreateSubscription(newCustomer, payload.Plan, payload.Email, payload.LastFour, "")
+	subscription, errorMessage, err := card.CreateSubscription(newCustomer, stripePayload.Plan, stripePayload.Email, stripePayload.LastFour, "")
 	if err != nil {
 		application.errorLog.Println("cannot subscribe to plan", err)
 		badResponse.Message = errorMessage
@@ -198,19 +192,19 @@ func (application *application) handlerPostCreateCustomerAndSubscribePlan(w http
 	}
 
 	// if all is ok -> send ok response / else -> send error response
-	productId, err := strconv.Atoi(payload.ProductID)
+	productId, err := strconv.Atoi(stripePayload.ProductID)
 	if err != nil {
 		application.errorLog.Println("cannot convert product id into int", err)
 		return
 	}
 
-	customerID := application.saveCustomerGetCustomerID(payload.FirstName, payload.LastName, payload.Email)
+	customerID := application.saveCustomerGetCustomerID(stripePayload.FirstName, stripePayload.LastName, stripePayload.Email)
 	if err != nil {
 		application.errorLog.Println("cannot save customer into database", err)
 		return
 	}
 
-	amount, err := strconv.Atoi(payload.Amount)
+	amount, err := strconv.Atoi(stripePayload.Amount)
 	if err != nil {
 		application.errorLog.Println("cannot convert amount into int", err)
 		return
@@ -218,11 +212,13 @@ func (application *application) handlerPostCreateCustomerAndSubscribePlan(w http
 
 	transaction := models.Transaction{
 		Amount:              amount,
-		Currency:            payload.Currency,
-		LastFour:            payload.LastFour,
+		Currency:            stripePayload.Currency,
+		LastFour:            stripePayload.LastFour,
 		TransactionStatusID: transactionStatus.Cleared,
-		ExpiryMonth:         payload.ExpiryMonth,
-		ExpiryYear:          payload.ExpiryYear,
+		ExpiryMonth:         stripePayload.ExpiryMonth,
+		ExpiryYear:          stripePayload.ExpiryYear,
+		PaymentIntent:       subscription.ID,
+		PaymentMethod:       stripePayload.PaymentMethod,
 		CreatedAt:           time.Now(),
 		UpdatedAt:           time.Now(),
 	}
@@ -504,7 +500,7 @@ func (application *application) handlerPostRefund(w http.ResponseWriter, r *http
 		return
 	}
 
-	// Update status of sale or subscription in database
+	// Update status of sale in database
 	err = application.DB.UpdateOrderStatus(2, chargeToRefund.ID)
 	if err != nil {
 		application.errorLog.Println("cannot update order status :", err)
@@ -515,6 +511,43 @@ func (application *application) handlerPostRefund(w http.ResponseWriter, r *http
 	var response AnswerPayload
 	response.Error = false
 	response.Message = "Refund was successful"
+
+	application.convertToJsonAndSend(response, w)
+}
+
+func (application *application) handlerPostCancelSubscription(w http.ResponseWriter, r *http.Request) {
+	var payload struct {
+		ID            int    `json:"id"`
+		PaymentIntent string `json:"paymentIntent"`
+		Currency      string `json:"currency"`
+	}
+
+	application.readJSONInto(&payload, w, r)
+
+	card := cards.Card{
+		SecretKey: application.config.stripe.secretKey,
+		PublicKey: application.config.stripe.publicKey,
+		Currency:  payload.Currency,
+	}
+
+	err := card.CancelSubscription(payload.PaymentIntent)
+	if err != nil {
+		application.sendBadRequest(w, r, err)
+		application.errorLog.Println("cannot cancel the subscription :", err)
+		return
+	}
+
+	// Update status of subscription in database
+	err = application.DB.UpdateOrderStatus(status.Cancelled, payload.ID)
+	if err != nil {
+		application.errorLog.Println("cannot update order status :", err)
+		application.sendBadRequest(w, r, err)
+		return
+	}
+
+	var response AnswerPayload
+	response.Error = false
+	response.Message = "Cancelling the subscription was successful"
 
 	application.convertToJsonAndSend(response, w)
 }

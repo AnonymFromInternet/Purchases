@@ -5,10 +5,10 @@
 {{end}}
 
 {{define "content"}}
-    <div class="alert alert-danger text-center d-none" id="message"></div>
-
     <h2 class="mt-5">Subscription Details</h2>
     <hr>
+
+    <div class="alert alert-danger text-center d-none" id="cancel_subscription_message"></div>
 
     <p id="user_name"></p>
     <p id="email"></p>
@@ -18,22 +18,25 @@
     <a href="/admin/all-subscriptions" class="btn btn-info">Go to all Subscriptions</a>
 
     <!-- Modal Button -->
-    <button type="button" id="refund_btn" data-bs-toggle="modal" data-bs-target="#refundConfirmationModal" class="btn btn-warning">Refund Subscription</button>
+    {{$widget := index .Data "widget"}}
+    {{ if eq $widget.ID 1 }}
+        <button type="button" id="refund_btn" data-bs-toggle="modal" data-bs-target="#cancelSubscriptionConfirmationModal" class="btn btn-warning">Cancel Subscription</button>
+    {{ end }}
 
     <!-- Modal -->
-    <div class="modal fade" id="refundConfirmationModal" tabindex="-1" aria-labelledby="refundConfirmationModalLabel" aria-hidden="true">
+    <div class="modal fade" id="cancelSubscriptionConfirmationModal" tabindex="-1" aria-labelledby="cancelSubscriptionConfirmationLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5 text-danger" id="refundConfirmationModalLabel">Are You really sure and want to refund this charge?</h1>
+                    <h1 class="modal-title fs-5 text-danger" id="cancelSubscriptionConfirmationLabel">Are You really sure and want to cancel this subscription?</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-danger">
-                    You cannot re-refund this charge!
+                    You cannot re-cancel this subscription!
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, thanks</button>
-                    <button onclick="onRefund()" data-bs-dismiss="modal" type="button" class="btn btn-primary">Refund</button>
+                    <button onclick="onCancelSubscription()" data-bs-dismiss="modal" type="button" class="btn btn-primary">Cancel Subscription</button>
                 </div>
             </div>
         </div>
@@ -93,8 +96,54 @@
             amount = parseInt(order.amount)
         }
 
-        function onRefund() {
+        function onCancelSubscription() {
+            const token = localStorage.getItem('token')
+            const payload = {
+                id,
+                paymentIntent,
+                currency,
+            }
+            const requestOptions = {
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                },
+                body: JSON.stringify(payload),
+            }
 
+            fetch("{{.Api}}/api/admin/cancel-subscription", requestOptions)
+                .then(response => response.json())
+                .then(parsedResponse => {
+                    if (parsedResponse.error) {
+                        showCancelSubscriptionErrorMessage(parsedResponse.error)
+                    } else {
+                        showCancelSubscriptionSuccessMessage()
+                    }
+                })
+        }
+
+        function showCancelSubscriptionSuccessMessage() {
+            const cancelSubscriptionMessage = document.getElementById('cancel_subscription_message')
+            cancelSubscriptionMessage.classList.remove('alert-danger')
+            cancelSubscriptionMessage.classList.add('alert-success')
+            cancelSubscriptionMessage.classList.remove('d-none')
+            cancelSubscriptionMessage.innerText = "Cancelling the subscription was successful"
+        }
+
+        function showCancelSubscriptionErrorMessage(error) {
+            const cancelSubscriptionMessage = document.getElementById('cancel_subscription_message')
+            cancelSubscriptionMessage.classList.remove('alert-success')
+            cancelSubscriptionMessage.classList.add('alert-danger')
+            cancelSubscriptionMessage.classList.remove('d-none')
+            cancelSubscriptionMessage.innerText = error
+        }
+
+        function redirectToAllSubscriptionsPage() {
+            setTimeout(() => {
+                location.href = "/admin/all-subscriptions"
+            }, 1000)
         }
     </script>
 {{end}}

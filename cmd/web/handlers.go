@@ -402,7 +402,6 @@ func (application *application) handlerGetSaleDescription(w http.ResponseWriter,
 	data := make(map[string]interface{})
 
 	data["widget"] = widget
-	fmt.Println("data is :", data)
 
 	err = application.renderTemplate(w, r, "sale-description", &templateData{Data: data}, "stripe-js")
 	if err != nil {
