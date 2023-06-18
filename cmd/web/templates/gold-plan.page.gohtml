@@ -143,7 +143,7 @@
         }
 
         function postPaymentMethod() {
-            let amountToCharge = String(parseFloat(document.getElementById('amount').value))
+            // let amountToCharge = String(parseFloat(document.getElementById('amount').value))
 
             stripe.createPaymentMethod({
                 type: 'card',
@@ -161,7 +161,7 @@
                 // create a customer and subscribe to plan
                 let payload = {
                     currency: 'USD',
-                    amount: document.getElementById("amount").value,
+                    amount: String(parseFloat(document.getElementById('amount').value)),
                     plan: '{{$widget.PlanID}}',
                     paymentMethod: result.paymentMethod.id,
                     email: document.getElementById('email').value,

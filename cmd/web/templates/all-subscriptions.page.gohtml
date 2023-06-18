@@ -58,7 +58,7 @@
                     let newCell = newRow.insertCell()
                     newCell.innerHTML = `<a href="/admin/subscriptions/${item.id}">Order ${item.id}</a>`
 
-                    // TODO: Возможно нужно будет исправить содержимое
+
                     newCell = newRow.insertCell()
                     let node = document.createTextNode(`${item.customer.lastName} ${item.customer.firstName}`)
                     newCell.appendChild(node)

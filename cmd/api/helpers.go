@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/AnonymFromInternet/Purchases/internal/contentTypes"
 	"github.com/AnonymFromInternet/Purchases/internal/models"
 	"golang.org/x/crypto/bcrypt"
@@ -25,7 +24,6 @@ type AnswerPayload struct {
 
 // readJSONInto check if request size is no greater than maxSizeInBytes and decode payload from request into arg
 func (application *application) readJSONInto(ptrToData interface{}, w http.ResponseWriter, r *http.Request) {
-	fmt.Println("readJSONInto()")
 	maxSizeInBytes := 1048576
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxSizeInBytes))
 	dec := json.NewDecoder(r.Body)
@@ -36,8 +34,6 @@ func (application *application) readJSONInto(ptrToData interface{}, w http.Respo
 
 		return
 	}
-
-	fmt.Println("")
 
 	err = dec.Decode(&struct{}{})
 	if err != io.EOF {

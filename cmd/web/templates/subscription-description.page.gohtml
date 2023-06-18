@@ -61,7 +61,7 @@
             }
 
             if (id) {
-                fetch("{{.Api}}/api/admin/subscription-description/" + id, requestOptions)
+                fetch("{{.Api}}/api/admin/subscription-or-sale-description/" + id, requestOptions)
                     .then(response => response.json())
                     .then(result => {
                         if (result.error) {
@@ -94,29 +94,7 @@
         }
 
         function onRefund() {
-            const token = localStorage.getItem('token')
-            const payload = {
-                id,
-                paymentIntent,
-                amount,
-                currency,
-            }
-            const requestOptions = {
-                method: 'post',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                },
 
-                body: JSON.stringify(payload)
-            }
-
-            fetch("{{.Api}}/api/admin/refund/", requestOptions)
-                .then(response => response.json())
-                .then(parsedResponse => {
-                    console.log('parsedResponse :', parsedResponse)
-                })
         }
     </script>
 {{end}}

@@ -160,7 +160,7 @@ func (application *application) handlerPostCreateCustomerAndSubscribePlan(w http
 	// TODO: should make something with this variable
 	var subscription *stripe.Subscription
 
-	fmt.Println(subscription)
+	fmt.Println("subscription is here is not initialized yet :", subscription)
 
 	badResponse := jsonResponse{
 		Ok: false,
@@ -455,7 +455,7 @@ func (application *application) handlerPostAllSubscriptions(w http.ResponseWrite
 	application.convertToJsonAndSend(allSubscriptions, w)
 }
 
-func (application *application) handlerPostSubscriptionDescription(w http.ResponseWriter, r *http.Request) {
+func (application *application) handlerPostSubscriptionOrSaleDescription(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	idAsInt, err := strconv.Atoi(id)
 	if err != nil {

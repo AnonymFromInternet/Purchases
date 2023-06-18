@@ -8,6 +8,8 @@
     <h2 class="mt-5">Sale</h2>
     <hr>
 
+    <div class="alert alert-danger text-center d-none" id="refund_messages"></div>
+
     <p id="user_name"></p>
     <p id="email"></p>
     <p id="subscription_name"></p>
@@ -16,7 +18,10 @@
     <a href="/admin/all-sales" class="btn btn-info">Go to all Sales</a>
 
     <!-- Modal Button -->
-    <button type="button" id="refund_btn" data-bs-toggle="modal" data-bs-target="#refundConfirmationModal" class="btn btn-warning">Refund Sale</button>
+    {{$widget := index .Data "widget"}}
+    {{ if eq $widget.ID 1 }}
+        <button type="button" id="refund_btn" data-bs-toggle="modal" data-bs-target="#refundConfirmationModal" class="btn btn-warning">Refund Sale</button>
+    {{ end }}
 
     <!-- Modal -->
     <div class="modal fade" id="refundConfirmationModal" tabindex="-1" aria-labelledby="refundConfirmationModalLabel" aria-hidden="true">
@@ -40,6 +45,11 @@
 
 {{define "js"}}
     <script>
+        let id
+        let paymentIntent
+        let currency
+        let amount
+
         document.addEventListener("DOMContentLoaded", () => {
             const token = localStorage.getItem("token")
             const id = location.pathname.split("/").pop()
@@ -54,13 +64,14 @@
             }
 
             if (id) {
-                fetch("{{.Api}}/api/admin/sale-description/" + id, requestOptions)
+                fetch("{{.Api}}/api/admin/subscription-or-sale-description/" + id, requestOptions)
                     .then(response => response.json())
                     .then(result => {
                         if (result.error) {
                             showErrorMessage(result.error)
                         } else {
                             initHTMLValues(result.order)
+                            setDataForFuturePayload(result.order)
                         }
                     })
             }
@@ -79,9 +90,65 @@
         }
 
         function onRefund() {
-            console.log('onRefund()')
+            const token = localStorage.getItem('token')
+            const payload = {
+                id,
+                paymentIntent,
+                amount,
+                currency,
+            }
 
-            //location.href = "/admin/refund"
+            console.log('payload :', payload)
+            const requestOptions = {
+                method: 'post',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                },
+
+                body: JSON.stringify(payload)
+            }
+
+            fetch("{{.Api}}/api/admin/refund", requestOptions)
+                .then(response => response.json())
+                .then(parsedResponse => {
+                    if (!parsedResponse.error) {
+                        showRefundSuccessMessage()
+                        redirectToAllSales()
+                    } else {
+                        showRefundErrorMessage(parsedResponse.error)
+                    }
+                })
+        }
+
+        function setDataForFuturePayload(order) {
+            id = parseInt(order.id )
+            paymentIntent = order.transaction.paymentIntent
+            currency = order.transaction.currency
+            amount = parseInt(order.amount)
+        }
+
+        function showRefundSuccessMessage() {
+            const refund_messages = document.getElementById('refund_messages')
+            refund_messages.classList.remove('alert-danger')
+            refund_messages.classList.add('alert-success')
+            refund_messages.classList.remove('d-none')
+            refund_messages.innerText = "Refund was successful"
+        }
+
+        function showRefundErrorMessage(error) {
+            const refund_messages = document.getElementById('refund_messages')
+            refund_messages.classList.remove('alert-success')
+            refund_messages.classList.add('alert-danger')
+            refund_messages.classList.remove('d-none')
+            refund_messages.innerText = error
+        }
+
+        function redirectToAllSales() {
+            setTimeout(() => {
+                location.href = "/admin/all-sales"
+            }, 1000)
         }
     </script>
 {{end}}

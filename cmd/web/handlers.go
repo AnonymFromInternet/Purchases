@@ -194,10 +194,6 @@ func (application *application) handlerPostPaymentSucceededByOnce(w http.Respons
 }
 
 func (application *application) handlerPostPaymentSucceededVirtualTerminal(w http.ResponseWriter, r *http.Request) {
-	formData := application.getFormData(r)
-
-	fmt.Println("formData :", formData)
-
 	http.Redirect(w, r, "/receipt-virtual-terminal", http.StatusSeeOther)
 }
 
@@ -406,6 +402,7 @@ func (application *application) handlerGetSaleDescription(w http.ResponseWriter,
 	data := make(map[string]interface{})
 
 	data["widget"] = widget
+	fmt.Println("data is :", data)
 
 	err = application.renderTemplate(w, r, "sale-description", &templateData{Data: data}, "stripe-js")
 	if err != nil {
