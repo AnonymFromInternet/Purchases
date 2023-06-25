@@ -422,18 +422,39 @@ func (application *application) handlerPostSetNewPassword(w http.ResponseWriter,
 }
 
 func (application *application) handlerPostAllSales(w http.ResponseWriter, r *http.Request) {
-	allSales, err := application.DB.GetAllSales()
+	var payload struct {
+		PageSize    int `json:"pageSize"`
+		CurrentPage int `json:"currentPage"`
+	}
+
+	application.readJSONInto(&payload, w, r)
+
+	sales, lastPage, totalRecords, err := application.DB.GetAllSalesPaginated(2, 1)
 	if err != nil {
 		application.errorLog.Println("cannot get all sales from database :", err)
 		application.sendBadRequest(w, r, err)
 		return
 	}
 
-	if len(allSales) < 1 {
-		allSales = make([]*models.Order, 0)
+	if len(sales) < 1 {
+		sales = make([]*models.Order, 0)
 	}
 
-	application.convertToJsonAndSend(allSales, w)
+	var response struct {
+		PageSize     int             `json:"pageSize"`
+		CurrentPage  int             `json:"currentPage"`
+		LastPage     int             `json:"lastPage"`
+		TotalRecords int             `json:"totalRecords"`
+		Sales        []*models.Order `json:"sales"`
+	}
+
+	response.PageSize = payload.PageSize
+	response.CurrentPage = 1
+	response.LastPage = lastPage
+	response.TotalRecords = totalRecords
+	response.Sales = sales
+
+	application.convertToJsonAndSend(response, w)
 }
 
 func (application *application) handlerPostAllSubscriptions(w http.ResponseWriter, r *http.Request) {

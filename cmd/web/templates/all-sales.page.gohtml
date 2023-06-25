@@ -22,12 +22,38 @@
 
         </tbody>
     </table>
+
+    <nav aria-label="Page navigation example">
+        <ul id="paginator" class="pagination">
+
+        </ul>
+    </nav>
 {{end}}
 
 {{define "js"}}
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
+        let currentPage = 1
+        let pageSize = 5
+
+        function paginate(pages, currentPage) {
+            let paginator = document.getElementById('paginator')
+            let listItem = `<li class="page-item"> <a href="#" class="page-link listItem" data-page="${currentPage - 1}">${currentPage - 1}</a> </li>`
+
+            pages.forEach((_, index) => {
+                listItem += `<li class="page-item"> <a href="#" class="page-link listItem" data-page="${index + 1}">${index + 1}</a> </li>`
+            })
+
+            listItem = `<li class="page-item"> <a href="#" class="page-link listItem" data-page="${currentPage + 1}">${currentPage + 1}</a> </li>`
+
+            paginator.innerHTML = listItem
+        }
+
+        function updateTable(pageSize, currentPage) {
             const token = localStorage.getItem("token")
+            const payload = {
+                pageSize,
+                currentPage,
+            }
             const requestOptions = {
                 method: 'post',
                 headers: {
@@ -35,6 +61,7 @@
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer '+token,
                 },
+                body: JSON.stringify(payload),
             }
 
             fetch("{{.Api}}/api/admin/all-sales", requestOptions)
@@ -43,16 +70,22 @@
                     if (result.error) {
                         // show an error
                     } else {
-                        appendDataFromResponseIntoTable(result)
+                        // TODO
+                        paginate(response.sales, response.currentPage)
+                        appendDataFromResponseIntoTable(result.sales)
                     }
                 })
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            updateTable(pageSize, currentPage)
         })
 
-        function appendDataFromResponseIntoTable(result) {
+        function appendDataFromResponseIntoTable(sales) {
             const tableBody = document.getElementById('sales_table').getElementsByTagName('tbody')[0]
 
-            if (result.length !== 0) {
-                result.forEach(item => {
+            if (sales.length !== 0) {
+                sales.forEach(item => {
                     const newRow = tableBody.insertRow()
 
                     let newCell = newRow.insertCell()

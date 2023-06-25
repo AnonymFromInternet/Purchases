@@ -9,6 +9,99 @@ import (
 	"time"
 )
 
+// Models for the postgres db
+
+type Widget struct {
+	ID             int       `json:"id"`
+	Name           string    `json:"name"`
+	Description    string    `json:"description"`
+	InventoryLevel int       `json:"inventoryLevel"`
+	Price          int       `json:"price"`
+	Image          string    `json:"image"`
+	IsRecurring    bool      `json:"isRecurring"`
+	PlanID         string    `json:"planId"`
+	CreatedAt      time.Time `json:"-"`
+	UpdatedAt      time.Time `json:"-"`
+}
+
+type Order struct {
+	ID            int         `json:"id"`
+	WidgetId      int         `json:"widgetId"`
+	TransactionId int         `json:"transactionId"`
+	CustomerID    int         `json:"customerID"`
+	StatusId      int         `json:"statusId"`
+	Quantity      int         `json:"quantity"`
+	Amount        int         `json:"amount"`
+	CreatedAt     time.Time   `json:"-"`
+	UpdatedAt     time.Time   `json:"-"`
+	Widget        Widget      `json:"widget"`
+	Customer      Customer    `json:"customer"`
+	Transaction   Transaction `json:"transaction"`
+}
+
+type Status struct {
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+}
+
+type TransactionStatus struct {
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+}
+
+type Transaction struct {
+	ID                  int       `json:"id"`
+	Amount              int       `json:"amount"`
+	Currency            string    `json:"currency"`
+	LastFour            string    `json:"lastFour"`
+	BankReturnCode      string    `json:"bankReturnCode"`
+	PaymentIntent       string    `json:"paymentIntent"`
+	PaymentMethod       string    `json:"paymentMethod"`
+	TransactionStatusID int       `json:"transactionStatusId"`
+	ExpiryMonth         int       `json:"expiryMonth"`
+	ExpiryYear          int       `json:"expiryYear"`
+	CreatedAt           time.Time `json:"-"`
+	UpdatedAt           time.Time `json:"-"`
+}
+
+type User struct {
+	ID        int       `json:"id"`
+	FirstName string    `json:"firstName"`
+	LastName  string    `json:"lastName"`
+	Email     string    `json:"email"`
+	Password  string    `json:"password"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+}
+
+type Customer struct {
+	ID        int       `json:"id"`
+	FirstName string    `json:"firstName"`
+	LastName  string    `json:"lastName"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+}
+
+type TransactionData struct {
+	Email          string `json:"email"`
+	FirstName      string `json:"firstName"`
+	LastName       string `json:"lastName"`
+	PaymentMethod  string `json:"paymentMethod"`
+	PaymentIntent  string `json:"paymentIntent"`
+	Amount         int    `json:"amount"`
+	Currency       string `json:"currency"`
+	LastFour       string `json:"lastFour"`
+	ExpiryMonth    uint64 `json:"expiryMonth"`
+	ExpiryYear     uint64 `json:"expiryYear"`
+	BankReturnCode string `json:"bankReturnCode"`
+	WidgetId       int    `json:"widgetId"`
+}
+
 type DBModel struct {
 	DB *sql.DB
 }
@@ -307,6 +400,94 @@ func (model *DBModel) GetAllSales() ([]*Order, error) {
 	return orders, nil
 }
 
+func (model *DBModel) GetAllSalesPaginated(pageSize, page int) (orders []*Order, lastPage, totalRecords int, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	offset := (page - 1) * pageSize
+
+	query := `
+		select o.id, o.widget_id, o.transaction_id, o.status_id, o.quantity, o.amount, o.customer_id,
+		o.created_at, o.updated_at, w.id, w.name, t.id, t.amount, t.currency, t.last_four,
+		t.expiry_month, t.expiry_year, t.payment_intent, t.bank_return_code, c.id, c.first_name, c.last_name, c.email
+		from
+			orders o
+			left join widgets w on (o.widget_id = w.id)
+			left join transactions t on (o.transaction_id = t.id)
+			left join customers c on (o.customer_id = c.id)
+		where
+		    w.is_recurring = false
+		
+		order by
+			o.created_at desc
+		limit $1 offset $2
+	`
+
+	rows, err := model.DB.QueryContext(ctx, query, pageSize, offset)
+	if err != nil {
+		return nil, lastPage, totalRecords, err
+	}
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+
+		}
+	}(rows)
+
+	for rows.Next() {
+		var order Order
+
+		err = rows.Scan(
+			&order.ID,
+			&order.WidgetId,
+			&order.TransactionId,
+			&order.StatusId,
+			&order.Quantity,
+			&order.Amount,
+			&order.CustomerID,
+			&order.CreatedAt,
+			&order.UpdatedAt,
+			&order.Widget.ID,
+			&order.Widget.Name,
+			&order.Transaction.ID,
+			&order.Transaction.Amount,
+			&order.Transaction.Currency,
+			&order.Transaction.LastFour,
+			&order.Transaction.ExpiryMonth,
+			&order.Transaction.ExpiryYear,
+			&order.Transaction.PaymentIntent,
+			&order.Transaction.BankReturnCode,
+			&order.Customer.ID,
+			&order.Customer.FirstName,
+			&order.Customer.LastName,
+			&order.Customer.Email,
+		)
+		if err != nil {
+			return nil, lastPage, totalRecords, err
+		}
+
+		orders = append(orders, &order)
+	}
+
+	query = `
+		select count(o.id)
+		from orders o
+		left join widgets w on (o.widget_id = w.id)
+		where w.is_requrring = false
+	`
+
+	countRow := model.DB.QueryRowContext(ctx, query)
+
+	err = countRow.Scan(&totalRecords)
+	if err != nil {
+		return nil, lastPage, totalRecords, err
+	}
+
+	lastPage = totalRecords / pageSize
+
+	return orders, lastPage, totalRecords, nil
+}
+
 // GetAllSubscriptions gets all rows from the orders table with the condition in query
 func (model *DBModel) GetAllSubscriptions() ([]*Order, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -447,97 +628,4 @@ func (model *DBModel) UpdateOrderStatus(newRefundedStatusID, orderID int) error 
 	}
 
 	return nil
-}
-
-// Models for the postgres db
-
-type Widget struct {
-	ID             int       `json:"id"`
-	Name           string    `json:"name"`
-	Description    string    `json:"description"`
-	InventoryLevel int       `json:"inventoryLevel"`
-	Price          int       `json:"price"`
-	Image          string    `json:"image"`
-	IsRecurring    bool      `json:"isRecurring"`
-	PlanID         string    `json:"planId"`
-	CreatedAt      time.Time `json:"-"`
-	UpdatedAt      time.Time `json:"-"`
-}
-
-type Order struct {
-	ID            int         `json:"id"`
-	WidgetId      int         `json:"widgetId"`
-	TransactionId int         `json:"transactionId"`
-	CustomerID    int         `json:"customerID"`
-	StatusId      int         `json:"statusId"`
-	Quantity      int         `json:"quantity"`
-	Amount        int         `json:"amount"`
-	CreatedAt     time.Time   `json:"-"`
-	UpdatedAt     time.Time   `json:"-"`
-	Widget        Widget      `json:"widget"`
-	Customer      Customer    `json:"customer"`
-	Transaction   Transaction `json:"transaction"`
-}
-
-type Status struct {
-	ID        int       `json:"id"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
-}
-
-type TransactionStatus struct {
-	ID        int       `json:"id"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
-}
-
-type Transaction struct {
-	ID                  int       `json:"id"`
-	Amount              int       `json:"amount"`
-	Currency            string    `json:"currency"`
-	LastFour            string    `json:"lastFour"`
-	BankReturnCode      string    `json:"bankReturnCode"`
-	PaymentIntent       string    `json:"paymentIntent"`
-	PaymentMethod       string    `json:"paymentMethod"`
-	TransactionStatusID int       `json:"transactionStatusId"`
-	ExpiryMonth         int       `json:"expiryMonth"`
-	ExpiryYear          int       `json:"expiryYear"`
-	CreatedAt           time.Time `json:"-"`
-	UpdatedAt           time.Time `json:"-"`
-}
-
-type User struct {
-	ID        int       `json:"id"`
-	FirstName string    `json:"firstName"`
-	LastName  string    `json:"lastName"`
-	Email     string    `json:"email"`
-	Password  string    `json:"password"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
-}
-
-type Customer struct {
-	ID        int       `json:"id"`
-	FirstName string    `json:"firstName"`
-	LastName  string    `json:"lastName"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
-}
-
-type TransactionData struct {
-	Email          string `json:"email"`
-	FirstName      string `json:"firstName"`
-	LastName       string `json:"lastName"`
-	PaymentMethod  string `json:"paymentMethod"`
-	PaymentIntent  string `json:"paymentIntent"`
-	Amount         int    `json:"amount"`
-	Currency       string `json:"currency"`
-	LastFour       string `json:"lastFour"`
-	ExpiryMonth    uint64 `json:"expiryMonth"`
-	ExpiryYear     uint64 `json:"expiryYear"`
-	BankReturnCode string `json:"bankReturnCode"`
-	WidgetId       int    `json:"widgetId"`
 }
