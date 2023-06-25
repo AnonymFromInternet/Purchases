@@ -400,11 +400,12 @@ func (model *DBModel) GetAllSales() ([]*Order, error) {
 	return orders, nil
 }
 
-func (model *DBModel) GetAllSalesPaginated(pageSize, page int) (orders []*Order, lastPage, totalRecords int, err error) {
+// GetAllSalesPaginated returns all rows from the database and also other params. which allow for frontend paginate rows correctly
+func (model *DBModel) GetAllSalesPaginated(itemsAmount, page int) (allOrders []*Order, lastPage, totalRecords int, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	offset := (page - 1) * pageSize
+	offset := (page - 1) * itemsAmount
 
 	query := `
 		select o.id, o.widget_id, o.transaction_id, o.status_id, o.quantity, o.amount, o.customer_id,
@@ -417,20 +418,19 @@ func (model *DBModel) GetAllSalesPaginated(pageSize, page int) (orders []*Order,
 			left join customers c on (o.customer_id = c.id)
 		where
 		    w.is_recurring = false
-		
 		order by
 			o.created_at desc
 		limit $1 offset $2
 	`
 
-	rows, err := model.DB.QueryContext(ctx, query, pageSize, offset)
+	rows, err := model.DB.QueryContext(ctx, query, itemsAmount, offset)
 	if err != nil {
 		return nil, lastPage, totalRecords, err
 	}
 	defer func(rows *sql.Rows) {
 		err := rows.Close()
 		if err != nil {
-
+			return
 		}
 	}(rows)
 
@@ -466,14 +466,14 @@ func (model *DBModel) GetAllSalesPaginated(pageSize, page int) (orders []*Order,
 			return nil, lastPage, totalRecords, err
 		}
 
-		orders = append(orders, &order)
+		allOrders = append(allOrders, &order)
 	}
 
 	query = `
 		select count(o.id)
 		from orders o
 		left join widgets w on (o.widget_id = w.id)
-		where w.is_requrring = false
+		where w.is_recurring = false
 	`
 
 	countRow := model.DB.QueryRowContext(ctx, query)
@@ -483,9 +483,9 @@ func (model *DBModel) GetAllSalesPaginated(pageSize, page int) (orders []*Order,
 		return nil, lastPage, totalRecords, err
 	}
 
-	lastPage = totalRecords / pageSize
+	lastPage = totalRecords / itemsAmount
 
-	return orders, lastPage, totalRecords, nil
+	return allOrders, lastPage, totalRecords, nil
 }
 
 // GetAllSubscriptions gets all rows from the orders table with the condition in query

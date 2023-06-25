@@ -33,33 +33,51 @@
 {{define "js"}}
     <script>
         let currentPage = 1
-        let pageSize = 5
+        let itemsAmount = 2
 
-        function paginate(pages, currentPage) {
+        function updatePagination(allOrders, currentPage) {
             let paginator = document.getElementById('paginator')
-            let listItem = `<li class="page-item"> <a href="#" class="page-link listItem" data-page="${currentPage - 1}">${currentPage - 1}</a> </li>`
+            let listItem = `<li class="page-item"> <a href="#!" class="page-link listItem" data-page="${currentPage - 1}">&lt;</a> </li>`
+            let nextPageNumber
 
-            pages.forEach((_, index) => {
-                listItem += `<li class="page-item"> <a href="#" class="page-link listItem" data-page="${index + 1}">${index + 1}</a> </li>`
+            allOrders.forEach((_, index) => {
+                nextPageNumber = index + 1
+                listItem += `<li class="page-item"> <a href="#!" class="page-link listItem" data-page="${index + 1}">${index + 1}</a> </li>`
             })
 
-            listItem = `<li class="page-item"> <a href="#" class="page-link listItem" data-page="${currentPage + 1}">${currentPage + 1}</a> </li>`
+            listItem += `<li class="page-item"> <a href="#!" class="page-link listItem" data-page="${nextPageNumber + 1}">&gt;</a> </li>`
 
             paginator.innerHTML = listItem
+
+            let pageButtons = document.getElementsByClassName('listItem')
+
+            for (let i = 0; i < pageButtons.length; i++) {
+                pageButtons[i].addEventListener('click', (event) => {
+                    let desiredPage = event.target.getAttribute('data-page')
+
+                    if (pageButtons.length > 0 && desiredPage <= allOrders.length + 1) {
+                        updateTable(itemsAmount, desiredPage)
+                    }
+                })
+            }
         }
 
-        function updateTable(pageSize, currentPage) {
+        function updateTable(itemsAmount, currentPage) {
             const token = localStorage.getItem("token")
             const payload = {
-                pageSize,
-                currentPage,
+                itemsAmount: parseInt(itemsAmount),
+                currentPage: parseInt(currentPage),
             }
+
+
+            console.log('payload :', payload)
+
             const requestOptions = {
                 method: 'post',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer '+token,
+                    'Authorization': 'Bearer '+ token,
                 },
                 body: JSON.stringify(payload),
             }
@@ -70,22 +88,25 @@
                     if (result.error) {
                         // show an error
                     } else {
-                        // TODO
-                        paginate(response.sales, response.currentPage)
-                        appendDataFromResponseIntoTable(result.sales)
+                        console.log('result :', result)
+                        const tableBody = document.getElementById('sales_table').getElementsByTagName('tbody')[0]
+                        tableBody.innerHTML = ''
+
+                        updatePagination(result.allOrders, result.currentPage)
+                        appendDataFromResponseIntoTable(result.allOrders)
                     }
                 })
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            updateTable(pageSize, currentPage)
+            updateTable(itemsAmount, currentPage)
         })
 
-        function appendDataFromResponseIntoTable(sales) {
-            const tableBody = document.getElementById('sales_table').getElementsByTagName('tbody')[0]
+        function appendDataFromResponseIntoTable(allOrders) {
+            let tableBody = document.getElementById('sales_table').getElementsByTagName('tbody')[0]
 
-            if (sales.length !== 0) {
-                sales.forEach(item => {
+            if (allOrders.length !== 0) {
+                allOrders.forEach(item => {
                     const newRow = tableBody.insertRow()
 
                     let newCell = newRow.insertCell()
@@ -104,6 +125,7 @@
                     newCell.appendChild(node)
 
                     newCell = newRow.insertCell()
+
                     if (item.statusId !== 1) {
                         newCell.innerHTML = `<span class="badge bg-danger">Refunded</span>`
                     } else {
@@ -114,7 +136,7 @@
                 const newRow = tableBody.insertRow()
                 let newCell = newRow.insertCell()
 
-                newCell.setAttribute('colspan', "4")
+                newCell.setAttribute('colspan', "5")
                 newCell.innerHTML = 'No data available'
             }
         }

@@ -423,36 +423,36 @@ func (application *application) handlerPostSetNewPassword(w http.ResponseWriter,
 
 func (application *application) handlerPostAllSales(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
-		PageSize    int `json:"pageSize"`
+		ItemsAmount int `json:"itemsAmount"`
 		CurrentPage int `json:"currentPage"`
 	}
 
 	application.readJSONInto(&payload, w, r)
 
-	sales, lastPage, totalRecords, err := application.DB.GetAllSalesPaginated(2, 1)
+	allOrders, lastPage, totalRecords, err := application.DB.GetAllSalesPaginated(payload.ItemsAmount, payload.CurrentPage)
 	if err != nil {
-		application.errorLog.Println("cannot get all sales from database :", err)
+		application.errorLog.Println("cannot get all allOrders from database :", err)
 		application.sendBadRequest(w, r, err)
 		return
 	}
 
-	if len(sales) < 1 {
-		sales = make([]*models.Order, 0)
+	if len(allOrders) < 1 {
+		allOrders = make([]*models.Order, 0)
 	}
 
 	var response struct {
-		PageSize     int             `json:"pageSize"`
+		ItemsAmount  int             `json:"itemsAmount"`
 		CurrentPage  int             `json:"currentPage"`
 		LastPage     int             `json:"lastPage"`
 		TotalRecords int             `json:"totalRecords"`
-		Sales        []*models.Order `json:"sales"`
+		AllOrders    []*models.Order `json:"allOrders"`
 	}
 
-	response.PageSize = payload.PageSize
+	response.ItemsAmount = payload.ItemsAmount
 	response.CurrentPage = 1
 	response.LastPage = lastPage
 	response.TotalRecords = totalRecords
-	response.Sales = sales
+	response.AllOrders = allOrders
 
 	application.convertToJsonAndSend(response, w)
 }
