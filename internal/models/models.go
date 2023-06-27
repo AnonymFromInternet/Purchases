@@ -488,8 +488,8 @@ func (model *DBModel) GetAllSalesPaginated(itemsAmount, page int) (allOrders []*
 	return allOrders, lastPage, totalRecords, nil
 }
 
-// GetAllSubscriptions gets all rows from the orders table with the condition in query
-func (model *DBModel) GetAllSubscriptions() ([]*Order, error) {
+// GetAllSubscriptionsPaginated gets all rows from the "orders" table with the condition in query
+func (model *DBModel) GetAllSubscriptionsPaginated(itemsAmount, page int) (allSubscriptions []*Order, lastPage, totalRecords int, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -503,7 +503,7 @@ func (model *DBModel) GetAllSubscriptions() ([]*Order, error) {
 			left join transactions t on (o.transaction_id = t.id)
 			left join customers c on (o.customer_id = c.id)
 		where
-		    w.is_recurring = true
+		    w.is_recurring = false
 		
 		order by
 			o.created_at desc
@@ -511,7 +511,7 @@ func (model *DBModel) GetAllSubscriptions() ([]*Order, error) {
 
 	rows, err := model.DB.QueryContext(ctx, query)
 	if err != nil {
-		return nil, err
+		return nil, lastPage, totalRecords, err
 	}
 	defer func(rows *sql.Rows) {
 		err := rows.Close()
@@ -551,13 +551,13 @@ func (model *DBModel) GetAllSubscriptions() ([]*Order, error) {
 			&order.Customer.Email,
 		)
 		if err != nil {
-			return nil, err
+			return nil, lastPage, totalRecords, err
 		}
 
 		orders = append(orders, &order)
 	}
 
-	return orders, nil
+	return orders, lastPage, totalRecords, nil
 }
 
 func (model *DBModel) GetSaleByID(id int) (Order, error) {

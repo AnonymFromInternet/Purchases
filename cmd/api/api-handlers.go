@@ -458,7 +458,13 @@ func (application *application) handlerPostAllSales(w http.ResponseWriter, r *ht
 }
 
 func (application *application) handlerPostAllSubscriptions(w http.ResponseWriter, r *http.Request) {
-	allSubscriptions, err := application.DB.GetAllSubscriptions()
+	var payload struct {
+		ItemsAmount int `json:"itemsAmount"`
+		CurrentPage int `json:"currentPage"`
+	}
+
+	application.readJSONInto(&payload, w, r)
+	allSubscriptions, lastPage, totalRecords, err := application.DB.GetAllSubscriptionsPaginated(payload.ItemsAmount, payload.CurrentPage)
 	if err != nil {
 		application.errorLog.Println("cannot get all subscriptions from database :", err)
 		application.sendBadRequest(w, r, err)
@@ -469,7 +475,21 @@ func (application *application) handlerPostAllSubscriptions(w http.ResponseWrite
 		allSubscriptions = make([]*models.Order, 0)
 	}
 
-	application.convertToJsonAndSend(allSubscriptions, w)
+	var response struct {
+		ItemsAmount  int             `json:"itemsAmount"`
+		CurrentPage  int             `json:"currentPage"`
+		LastPage     int             `json:"lastPage"`
+		TotalRecords int             `json:"totalRecords"`
+		AllOrders    []*models.Order `json:"allOrders"`
+	}
+
+	response.ItemsAmount = payload.ItemsAmount
+	response.CurrentPage = 1
+	response.LastPage = lastPage
+	response.TotalRecords = totalRecords
+	response.AllOrders = allSubscriptions
+
+	application.convertToJsonAndSend(response, w)
 }
 
 func (application *application) handlerPostSubscriptionOrSaleDescription(w http.ResponseWriter, r *http.Request) {

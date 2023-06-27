@@ -22,19 +22,64 @@
 
         </tbody>
     </table>
+
+    <nav aria-label="Page navigation example">
+        <ul id="paginator" class="pagination">
+
+        </ul>
+    </nav>
 {{end}}
 
 {{define "js"}}
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
+        let currentPage = 1
+        let itemsAmount = 2
+
+        function updatePagination(allOrders, currentPage) {
+            let paginator = document.getElementById('paginator')
+            let listItem = `<li class="page-item"> <a href="#!" class="page-link listItem" data-page="${currentPage - 1}">&lt;</a> </li>`
+            let nextPageNumber
+
+            allOrders.forEach((_, index) => {
+                nextPageNumber = index + 1
+                listItem += `<li class="page-item"> <a href="#!" class="page-link listItem" data-page="${index + 1}">${index + 1}</a> </li>`
+            })
+
+            listItem += `<li class="page-item"> <a href="#!" class="page-link listItem" data-page="${nextPageNumber + 1}">&gt;</a> </li>`
+
+            paginator.innerHTML = listItem
+
+            let pageButtons = document.getElementsByClassName('listItem')
+
+            for (let i = 0; i < pageButtons.length; i++) {
+                pageButtons[i].addEventListener('click', (event) => {
+                    let desiredPage = event.target.getAttribute('data-page')
+
+                    if (pageButtons.length > 0 && desiredPage <= allOrders.length + 1) {
+                        updateTable(itemsAmount, desiredPage)
+                    }
+                })
+            }
+        }
+
+        function updateTable(itemsAmount, currentPage) {
             const token = localStorage.getItem("token")
+            const payload = {
+                itemsAmount: parseInt(itemsAmount),
+                currentPage: parseInt(currentPage),
+            }
+
+
+            console.log('payload :', payload)
+
             const requestOptions = {
                 method: 'post',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer '+token,
+                    'Authorization': 'Bearer '+ token,
                 },
+                body: JSON.stringify(payload),
             }
 
             fetch("{{.Api}}/api/admin/all-subscriptions", requestOptions)
@@ -43,9 +88,19 @@
                     if (result.error) {
                         // show an error
                     } else {
-                        appendDataFromResponseIntoTable(result)
+                        console.log('result :', result)
+                        const tableBody = document.getElementById('subscriptions_table').getElementsByTagName('tbody')[0]
+                        tableBody.innerHTML = ''
+
+                        updatePagination(result.allOrders, result.currentPage)
+                        appendDataFromResponseIntoTable(result.allOrders)
                     }
                 })
+        }
+
+
+        document.addEventListener("DOMContentLoaded", () => {
+            updateTable(itemsAmount, currentPage)
         })
 
         function appendDataFromResponseIntoTable(result) {
