@@ -629,3 +629,124 @@ func (model *DBModel) UpdateOrderStatus(newRefundedStatusID, orderID int) error 
 
 	return nil
 }
+
+func (model *DBModel) GetAllUsers() (users []*User, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	const query = `
+				select id, first_name, last_name, email, created_at, updated_at
+				from users
+				order by
+				first_name, last_name
+	`
+
+	rows, err := model.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			return
+		}
+	}(rows)
+
+	for rows.Next() {
+		var user User
+		err = rows.Scan(
+			&user.ID,
+			&user.FirstName,
+			&user.LastName,
+			&user.Email,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		users = append(users, &user)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return users, nil
+}
+
+func (model *DBModel) GetUserById(id int) (user User, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	const query = `
+				select id, first_name, last_name, email, created_at, updated_at
+				from users
+				where id = $1
+	`
+
+	row := model.DB.QueryRowContext(ctx, query, id)
+	err = row.Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (model DBModel) EditUserById(user User, passwordHash string) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	const query = `
+				update users
+				set first_name, last_name, email, password, updated_at
+				values ($1, $2, $3, $4, $5)
+				where id = $6
+	`
+
+	_, err = model.DB.ExecContext(
+		ctx,
+		query,
+		user.FirstName,
+		user.LastName,
+		user.Email,
+		passwordHash,
+		time.Now(),
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (model DBModel) InsertUser(user User) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	const query = `
+				insert into users
+				(first_name, last_name, email, password, created_at, updated_at)
+				values ($1, $2, $3, $4, $5, $6)
+	`
+
+	_, err = model.DB.ExecContext(
+		ctx,
+		query,
+		user.FirstName,
+		user.LastName,
+		user.Email,
+		user.Password,
+		time.Now(),
+		time.Now(),
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
