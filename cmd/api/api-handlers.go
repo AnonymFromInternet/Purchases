@@ -602,3 +602,16 @@ func (application *application) handlerPostAllAdminUsers(w http.ResponseWriter, 
 
 	application.convertToJsonAndSend(users, w)
 }
+
+func (application *application) handlerPostOneUser(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	idAsInt, err := strconv.Atoi(id)
+
+	user, err := application.DB.GetUserById(idAsInt)
+	if err != nil {
+		application.sendBadRequest(w, r, err)
+		return
+	}
+
+	application.convertToJsonAndSend(user, w)
+}

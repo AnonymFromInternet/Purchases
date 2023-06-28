@@ -429,7 +429,12 @@ func (application *application) handlerGetAllAdminUsers(w http.ResponseWriter, r
 	}
 }
 func (application *application) handlerGetAdminUser(w http.ResponseWriter, r *http.Request) {
-	err := application.renderTemplate(w, r, "add-admin-user", &templateData{}, "stripe-js")
+	loggedUserID := application.SessionManager.GetInt(r.Context(), "userID")
+	intMap := make(map[string]int)
+
+	intMap["loggedUserID"] = loggedUserID
+
+	err := application.renderTemplate(w, r, "one-admin-user", &templateData{IntMap: intMap}, "stripe-js")
 	if err != nil {
 		application.errorLog.Println("cannot render the all-sales template :", err)
 
