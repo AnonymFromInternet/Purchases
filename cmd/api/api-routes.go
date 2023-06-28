@@ -36,6 +36,7 @@ func (application *application) routes() http.Handler {
 		chiRouter.Post("/subscription-or-sale-description/{id}", application.handlerPostSubscriptionOrSaleDescription)
 		chiRouter.Post("/refund", application.handlerPostRefund)
 		chiRouter.Post("/cancel-subscription", application.handlerPostCancelSubscription)
+		chiRouter.Post("/all-admin-users", application.handlerPostAllAdminUsers)
 	})
 
 	return mux

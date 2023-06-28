@@ -30,6 +30,44 @@
 
 {{define "js"}}
     <script>
-        let tbody = document.getElementById('admin-user-table').getElementsByTagName('tbody')[0]
+        document.addEventListener("DOMContentLoaded", () => {
+            let tbody = document.getElementById('admin-user-table').getElementsByTagName('tbody')[0]
+            const token = localStorage.getItem("token")
+
+            const requestOptions = {
+                method: 'post',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer '+ token,
+                },
+            }
+
+            fetch("{{.Api}}/api/admin/all-admin-users", requestOptions)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.error) {
+                        // show error
+                    } else {
+                        if (result.length !== 0) {
+                            result.forEach(user => {
+                                let newRow = tbody.insertRow()
+                                let newCell = newRow.insertCell()
+                                newCell.innerHTML = `<a href="/admin/all-admin-users/${user.id}">${user.firstName} ${user.lastName}</a>`
+
+                                newCell = newRow.insertCell()
+                                let item = document.createTextNode(user.email)
+                                newCell.appendChild(item)
+                            })
+                        } else {
+                            let newRow = tbody.insertRow()
+                            let newCell = newRow.insertCell()
+                            newCell.setAttribute('colspan', '2')
+                            newCell.innerHTML = 'There are no users'
+                        }
+
+                    }
+                })
+        })
     </script>
 {{end}}

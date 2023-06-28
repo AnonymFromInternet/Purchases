@@ -592,3 +592,13 @@ func (application *application) handlerPostCancelSubscription(w http.ResponseWri
 
 	application.convertToJsonAndSend(response, w)
 }
+
+func (application *application) handlerPostAllAdminUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := application.DB.GetAllUsers()
+	if err != nil {
+		application.sendBadRequest(w, r, err)
+		return
+	}
+
+	application.convertToJsonAndSend(users, w)
+}
