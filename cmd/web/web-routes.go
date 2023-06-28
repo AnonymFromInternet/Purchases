@@ -18,6 +18,8 @@ func (application *application) routes() http.Handler {
 		chiRouter.Get("/all-subscriptions", application.handlerGetAllSubscriptions)
 		chiRouter.Get("/sales/{id}", application.handlerGetSaleDescription)
 		chiRouter.Get("/subscriptions/{id}", application.handlerGetSubscriptionsDescription)
+		chiRouter.Get("/all-admin-users", application.handlerGetAllAdminUsers)
+		chiRouter.Get("/all-admin-users/{id}", application.handlerGetAdminUser)
 	})
 
 	mux.Get("/main", application.handlerGetMainPage)

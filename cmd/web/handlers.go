@@ -419,3 +419,20 @@ func (application *application) handlerGetSubscriptionsDescription(w http.Respon
 		return
 	}
 }
+
+func (application *application) handlerGetAllAdminUsers(w http.ResponseWriter, r *http.Request) {
+	err := application.renderTemplate(w, r, "all-admin-users", &templateData{}, "stripe-js")
+	if err != nil {
+		application.errorLog.Println("cannot render the all-sales template :", err)
+
+		return
+	}
+}
+func (application *application) handlerGetAdminUser(w http.ResponseWriter, r *http.Request) {
+	err := application.renderTemplate(w, r, "add-admin-user", &templateData{}, "stripe-js")
+	if err != nil {
+		application.errorLog.Println("cannot render the all-sales template :", err)
+
+		return
+	}
+}
