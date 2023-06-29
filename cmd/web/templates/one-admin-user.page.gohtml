@@ -35,7 +35,7 @@
         </div>
 
         <div class="float-start">
-            <a href="javascript:void(0);" class="btn btn-primary" id="save-btn">Save Changes</a>
+            <a onclick="onUserEdit()" class="btn btn-primary" id="save-btn">Save Changes</a>
             <a href="/admin/all-admin-users" class="btn btn-warning" id="cancel-btn">Cancel</a>
         </div>
 
@@ -102,6 +102,10 @@
                 .then(parsedResponse => {
                     console.log('parsedResponse :', parsedResponse)
                 })
+        }
+
+        const onUserEdit = () => {
+
         }
     </script>
 

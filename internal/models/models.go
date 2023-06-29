@@ -697,7 +697,7 @@ func (model *DBModel) GetUserById(id int) (user User, err error) {
 	return user, nil
 }
 
-func (model DBModel) EditUserById(user User, passwordHash string) (err error) {
+func (model DBModel) EditUser(user User) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -714,8 +714,9 @@ func (model DBModel) EditUserById(user User, passwordHash string) (err error) {
 		user.FirstName,
 		user.LastName,
 		user.Email,
-		passwordHash,
+		user.Password,
 		time.Now(),
+		user.ID,
 	)
 	if err != nil {
 		return err

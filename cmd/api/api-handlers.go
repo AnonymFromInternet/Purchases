@@ -10,6 +10,7 @@ import (
 	"github.com/AnonymFromInternet/Purchases/internal/transactionStatus"
 	"github.com/AnonymFromInternet/Purchases/internal/urlsigner"
 	"github.com/go-chi/chi/v5"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"strconv"
 	"time"
@@ -614,4 +615,67 @@ func (application *application) handlerPostOneUser(w http.ResponseWriter, r *htt
 	}
 
 	application.convertToJsonAndSend(user, w)
+}
+
+func (application *application) handlerPostEditUserOrAddNew(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	idAsInt, err := strconv.Atoi(id)
+	if err != nil {
+		application.errorLog.Println("cannot convert id into int", err)
+		return
+	}
+
+	var user models.User
+
+	application.readJSONInto(&user, w, r)
+	if err != nil {
+		application.errorLog.Println("cannot read payload into user", err)
+		application.sendBadRequest(w, r, err)
+		return
+	}
+
+	adminWantsToEditExistingUser := idAsInt > 0
+	if adminWantsToEditExistingUser {
+
+		userWantsToChangePassword := user.Password != ""
+		if userWantsToChangePassword {
+			newPasswordHash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
+			if err != nil {
+				application.errorLog.Println("cannot generate hash from password ", err)
+				application.sendBadRequest(w, r, err)
+				return
+			}
+
+			user.Password = string(newPasswordHash)
+
+		}
+
+		err := application.DB.EditUser(user)
+		if err != nil {
+			application.errorLog.Println("cannot edit user", err)
+			application.sendBadRequest(w, r, err)
+			return
+		}
+	} else {
+		newPasswordHash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
+		if err != nil {
+			application.errorLog.Println("cannot generate hash from password ", err)
+			application.sendBadRequest(w, r, err)
+			return
+		}
+		user.Password = string(newPasswordHash)
+
+		err = application.DB.InsertUser(user)
+		if err != nil {
+			application.errorLog.Println("cannot insert new user ", err)
+			application.sendBadRequest(w, r, err)
+			return
+		}
+	}
+
+	var answerPayload AnswerPayload
+	answerPayload.Error = false
+	answerPayload.Message = ""
+
+	application.convertToJsonAndSend(answerPayload, w)
 }
