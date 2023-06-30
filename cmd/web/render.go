@@ -20,6 +20,7 @@ type templateData struct {
 	CssVersion      string
 	StripeSecretKey string
 	StripePublicKey string
+	UserID          int
 }
 
 var functions = template.FuncMap{
@@ -40,6 +41,7 @@ func (application *application) addDefaultData(templateData *templateData, r *ht
 
 	if application.SessionManager.Exists(r.Context(), "userID") {
 		templateData.IsAuthenticated = true
+		templateData.UserID = application.SessionManager.GetInt(r.Context(), "userID")
 	} else {
 		templateData.IsAuthenticated = false
 	}

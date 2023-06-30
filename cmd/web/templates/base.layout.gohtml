@@ -90,6 +90,44 @@
         let loginLink = document.getElementById('login_link')
     </script>
 
+    <script>
+        {{$isLoggedIn := .IsAuthenticated}}
+        let socket;
+
+        function connectToWebSocket() {
+            console.log('isLoggedIn', {{$isLoggedIn}})
+            console.log('user id :', {{.UserID}})
+            if ({{$isLoggedIn}}) {
+                socket = new WebSocket("ws://localhost:4000/ws")
+
+                socket.onopen = () => {
+                    console.log('Successfully connected to websockets')
+                }
+
+                socket.onclose = (event) => { }
+
+                socket.onerror = (error) => { }
+
+                socket.onmessage = (message) => {
+                    const data = JSON.parse(message.data)
+
+                    switch (data.action) {
+                        case "logout":
+                            if (data.userId === {{.UserID}}) {
+                                onLogout()
+                            }
+                            break;
+                        default:
+                    }
+                }
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            connectToWebSocket()
+        })
+    </script>
+
     {{block "js" .}}
         <script>
             function onLogout() {

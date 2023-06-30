@@ -17,13 +17,14 @@ type WebSocketPayload struct {
 	Message             string              `json:"message"`
 	UserName            string              `json:"userName"`
 	MessageType         string              `json:"messageType"`
+	UserID              int                 `json:"userId"`
 	WebSocketConnection WebSocketConnection `json:"-"`
 }
 
 type WebSocketResponse struct {
 	Action              string              `json:"action"`
 	Message             string              `json:"message"`
-	UserID              string              `json:"userId"`
+	UserID              int                 `json:"userId"`
 	MessageType         string              `json:"messageType"`
 	WebSocketConnection WebSocketConnection `json:"-"`
 }
@@ -98,6 +99,7 @@ func (application *application) ListenToWebsocketChannel() {
 		case "deleteUser":
 			response.Action = "logout"
 			response.Message = "Your Account has been deleted"
+			response.UserID = event.UserID
 
 			application.broadcastToAll(response)
 

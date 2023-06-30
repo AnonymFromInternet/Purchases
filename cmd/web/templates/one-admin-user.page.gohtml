@@ -107,8 +107,6 @@
         })
 
         const onUserDelete = () => {
-            // TODO пока что непонятно что тут вообще происходит
-
             const requestOptions = {
                 method: 'post',
                 headers: {
@@ -126,6 +124,13 @@
                     if (parsedResponse.error) {
                         // show an error
                     } else {
+                        const payload = {
+                            action: 'deleteUser',
+                            userId: parseInt(id),
+                        }
+
+                        socket.send(JSON.stringify(payload))
+
                         location.href = "/admin/all-admin-users"
                     }
                 })
