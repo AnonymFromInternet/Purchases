@@ -22,6 +22,8 @@ func (application *application) routes() http.Handler {
 		chiRouter.Get("/all-admin-users/{id}", application.handlerGetAdminUser)
 	})
 
+	mux.Get("/ws", application.WebSocketEndPoint)
+
 	mux.Get("/main", application.handlerGetMainPage)
 
 	mux.Get("/widget/{id}", application.handlerGetBuyOnce)

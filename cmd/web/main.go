@@ -120,6 +120,8 @@ func main() {
 		SessionManager: SessionManager,
 	}
 
+	go application.ListenToWebsocketChannel()
+
 	err = application.serve()
 	if err != nil {
 		application.errorLog.Println("cannot serve the app", err)
