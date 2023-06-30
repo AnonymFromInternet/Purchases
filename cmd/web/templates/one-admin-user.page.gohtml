@@ -31,7 +31,7 @@
 
         <div class="mb-3">
             <label for="validate_password" class="form-label">Confirm Password</label>
-            <input type="password" id="validate_password" name="validatePassword" class="form-control" required autocomplete="validate-password-new">
+            <input type="password" id="validate_password" name="validatePassword" class="form-control" autocomplete="validate-password-new">
         </div>
 
         <div class="float-start">
@@ -83,6 +83,7 @@
         })
 
         const onUserDelete = () => {
+            // TODO пока что непонятно что тут вообще происходит
             const payload = {
                 id,
             }
@@ -105,7 +106,54 @@
         }
 
         const onUserEdit = () => {
+            const form = document.getElementById('user_form')
 
+            if (!form.checkValidity()) {
+                this.event.preventDefault()
+                this.event.stopPropagation()
+
+                form.classList.add('was-validated')
+            } else {
+                form.classList.add('was-validated')
+
+                const password = document.getElementById('password').value
+                const confirmPassword = document.getElementById('validate_password').value
+
+                if (password !== confirmPassword) {
+                    // TODO show to user a message about it
+                    console.log('passwords are not equal')
+                } else {
+                    const payload = {
+                        id: parseInt(id),
+                        firstName: document.getElementById('first_name').value,
+                        lastName: document.getElementById('last_name').value,
+                        email: document.getElementById('email').value,
+                        password: document.getElementById('password').value,
+                    }
+
+                    const requestOptions = {
+                        method: 'post',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Authorization': 'Bearer ' + token,
+                        },
+                        body: JSON.stringify(payload),
+                    }
+
+                    fetch("{{.Api}}/api/admin/all-admin-users/edit/" + id, requestOptions)
+                        .then(response => response.json())
+                        .then(parsedResponse => {
+                            console.log('parsedResponse :', parsedResponse)
+
+                            if (parsedResponse.error) {
+
+                            } else {
+                                location.href = "/admin/all-admin-users"
+                            }
+                        })
+                }
+            }
         }
     </script>
 

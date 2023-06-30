@@ -703,8 +703,7 @@ func (model DBModel) EditUser(user User) (err error) {
 
 	const query = `
 				update users
-				set first_name, last_name, email, password, updated_at
-				values ($1, $2, $3, $4, $5)
+				set first_name = $1, last_name = $2, email = $3, password = $4, updated_at = $5
 				where id = $6
 	`
 
