@@ -697,7 +697,7 @@ func (model *DBModel) GetUserById(id int) (user User, err error) {
 	return user, nil
 }
 
-func (model DBModel) EditUser(user User) (err error) {
+func (model *DBModel) EditUser(user User) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -724,7 +724,7 @@ func (model DBModel) EditUser(user User) (err error) {
 	return nil
 }
 
-func (model DBModel) InsertUser(user User) (err error) {
+func (model *DBModel) InsertUser(user User) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -744,6 +744,31 @@ func (model DBModel) InsertUser(user User) (err error) {
 		time.Now(),
 		time.Now(),
 	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (model *DBModel) DeleteUser(id int) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	statement := `
+				delete from users
+				where id = $1
+	`
+	_, err = model.DB.ExecContext(ctx, statement, id)
+	if err != nil {
+		return err
+	}
+
+	statement = `
+				delete from tokens
+				where user_id = $1
+	`
+	_, err = model.DB.ExecContext(ctx, statement, id)
 	if err != nil {
 		return err
 	}

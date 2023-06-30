@@ -39,6 +39,7 @@ func (application *application) routes() http.Handler {
 		chiRouter.Post("/all-admin-users", application.handlerPostAllAdminUsers)
 		chiRouter.Post("/all-admin-users/{id}", application.handlerPostOneUser)
 		chiRouter.Post("/all-admin-users/edit/{id}", application.handlerPostEditUserOrAddNew)
+		chiRouter.Post("/all-admin-users/delete/{id}", application.handlerPostDeleteUser)
 	})
 
 	return mux

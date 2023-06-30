@@ -40,9 +40,33 @@
         </div>
 
         <div class="float-end">
-            <a onclick="onUserDelete()" class="btn btn-danger d-none" id="delete_btn">Delete User</a>
+            <a type="button" data-bs-toggle="modal" data-bs-target="#deleteModal" class="btn btn-danger d-none" id="delete_btn">Delete User</a>
         </div>
     </form>
+
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#deleteModal">
+        Launch demo modal
+    </button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="deleteModalLabel">Are you sure?</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Do You really want to delete this user?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" onclick="onUserDelete()" class="btn btn-danger">Delete User</button>
+                </div>
+            </div>
+        </div>
+    </div>
 {{end}}
 
 {{define "js"}}
@@ -84,9 +108,6 @@
 
         const onUserDelete = () => {
             // TODO пока что непонятно что тут вообще происходит
-            const payload = {
-                id,
-            }
 
             const requestOptions = {
                 method: 'post',
@@ -95,13 +116,18 @@
                     'Accept': 'application/json',
                     'Authorization': 'Bearer ' + token,
                 },
-                body: JSON.stringify(payload),
             }
 
-            fetch("{{.Api}}/api/admin/all-admin-users/" + id, requestOptions)
+            fetch("{{.Api}}/api/admin/all-admin-users/delete/" + id, requestOptions)
                 .then(response => response.json())
                 .then(parsedResponse => {
                     console.log('parsedResponse :', parsedResponse)
+
+                    if (parsedResponse.error) {
+                        // show an error
+                    } else {
+                        location.href = "/admin/all-admin-users"
+                    }
                 })
         }
 

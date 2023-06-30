@@ -679,3 +679,25 @@ func (application *application) handlerPostEditUserOrAddNew(w http.ResponseWrite
 
 	application.convertToJsonAndSend(answerPayload, w)
 }
+
+func (application *application) handlerPostDeleteUser(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	idAsInt, err := strconv.Atoi(id)
+	if err != nil {
+		application.errorLog.Println("cannot convert id into int", err)
+		return
+	}
+
+	err = application.DB.DeleteUser(idAsInt)
+	if err != nil {
+		application.errorLog.Println("cannot delete user ", err)
+		application.sendBadRequest(w, r, err)
+		return
+	}
+
+	var answerPayload AnswerPayload
+	answerPayload.Error = false
+	answerPayload.Message = "User was successfully deleted"
+
+	application.convertToJsonAndSend(answerPayload, w)
+}
