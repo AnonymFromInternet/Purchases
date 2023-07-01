@@ -32,19 +32,19 @@ type application struct {
 }
 
 func main() {
-	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
-	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
-
 	var config config
-	flag.IntVar(&config.port, "port", 5000, "Microservice server port to listen on")
+	flag.IntVar(&config.port, "port", 8000, "Microservice server port to listen on")
 
 	flag.StringVar(&config.smtp.host, "smtphost", "sandbox.smtp.mailtrap.io", "smtp host")
 	flag.IntVar(&config.smtp.port, "smtpport", 587, "smtp port")
 	flag.StringVar(&config.smtp.username, "smtpusername", "2bd6b713077f69", "smtp username")
 	flag.StringVar(&config.smtp.password, "smtppassword", "9770e176b68323", "smtp password")
-	flag.StringVar(&config.frontendURL, "frontendURL", "http://localhost:5000", "frontend URL")
+	flag.StringVar(&config.frontendURL, "frontendURL", "http://localhost:4000", "frontend URL")
 
 	flag.Parse()
+
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	application := &application{
 		config:   config,
@@ -70,7 +70,7 @@ func (application *application) serve() error {
 		WriteTimeout:      5 * time.Second,
 	}
 
-	application.infoLog.Println(fmt.Sprintf("Starting microservice server on port %d", application.config.port))
+	application.infoLog.Println(fmt.Sprintf("Starting microservice on port %d", application.config.port))
 
 	return server.ListenAndServe()
 }
