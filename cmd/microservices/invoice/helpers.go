@@ -7,6 +7,7 @@ import (
 	"github.com/AnonymFromInternet/Purchases/internal/models"
 	"io"
 	"net/http"
+	"os"
 )
 
 type AnswerPayload struct {
@@ -43,4 +44,15 @@ func (application *application) convertToJsonAndSend(data interface{}, w http.Re
 
 	w.Header().Set(contentTypes.ContentTypeKey, contentTypes.ApplicationJSON)
 	_, _ = w.Write(output)
+}
+
+func (application *application) createDirIfNotExist(path string) {
+	const mode = 0755
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		err := os.Mkdir(path, mode)
+		if err != nil {
+			application.errorLog.Println("cannot create dir ", err)
+		}
+	}
 }

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/AnonymFromInternet/Purchases/internal/cards"
 	"github.com/AnonymFromInternet/Purchases/internal/models"
@@ -155,8 +157,19 @@ func (application *application) handlerGetGoldPlan(w http.ResponseWriter, r *htt
 	}
 }
 
-// handlerPostPaymentSucceededByOnce is called from html, and only after the answer comes from stripe
-func (application *application) handlerPostPaymentSucceededByOnce(w http.ResponseWriter, r *http.Request) {
+type Invoice struct {
+	ID        int       `json:"id"`
+	Quantity  int       `json:"quantity"`
+	Amount    int       `json:"amount"`
+	Product   string    `json:"product"`
+	FirstName string    `json:"firstName"`
+	LastName  string    `json:"lastName"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+// handlerPostPaymentSucceededBuyOnce is called from html, and only after the answer comes from stripe
+func (application *application) handlerPostPaymentSucceededBuyOnce(w http.ResponseWriter, r *http.Request) {
 	tmplData := application.getTransactionData(r)
 	customerID := application.saveCustomerGetCustomerID(tmplData.FirstName, tmplData.LastName, tmplData.Email)
 
@@ -187,10 +200,55 @@ func (application *application) handlerPostPaymentSucceededByOnce(w http.Respons
 		UpdatedAt:     time.Now(),
 	}
 
-	application.saveOrderGetOrderID(order)
+	orderId := application.saveOrderGetOrderID(order)
+
+	// call microservice
+	invoice := Invoice{
+		ID:        orderId,
+		Quantity:  order.Quantity,
+		Amount:    order.Amount,
+		Product:   "Widget",
+		FirstName: tmplData.FirstName,
+		LastName:  tmplData.LastName,
+		Email:     tmplData.Email,
+		CreatedAt: time.Now(),
+	}
+
+	err := application.callInvoiceMicroservice(invoice)
+	if err != nil {
+		application.errorLog.Println("cannot call microservice correctly ", err)
+	}
 
 	application.SessionManager.Put(r.Context(), "receipt", tmplData)
 	http.Redirect(w, r, "/receipt-buy-once", http.StatusSeeOther)
+}
+
+func (application *application) callInvoiceMicroservice(invoice Invoice) error {
+	url := "http://localhost:8000/invoice/create-and-send"
+	outPut, err := json.MarshalIndent(invoice, "", " ")
+	if err != nil {
+		return err
+	}
+
+	request, err := http.NewRequest("POST", url, bytes.NewBuffer(outPut))
+	if err != nil {
+		return err
+	}
+
+	request.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+
+	response, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+
+	defer response.Body.Close()
+
+	application.infoLog.Println("microservice was called successfully")
+
+	return nil
 }
 
 func (application *application) handlerPostPaymentSucceededVirtualTerminal(w http.ResponseWriter, r *http.Request) {
@@ -225,11 +283,13 @@ func (application *application) saveTransactionGetTransactionID(transaction mode
 	return transactionID
 }
 
-func (application *application) saveOrderGetOrderID(order models.Order) {
-	_, err := application.DB.InsertOrderGetOrderID(order)
+func (application *application) saveOrderGetOrderID(order models.Order) (orderId int) {
+	orderId, err := application.DB.InsertOrderGetOrderID(order)
 	if err != nil {
 		application.errorLog.Println("cannot get transaction id", err)
 	}
+
+	return orderId
 }
 
 func (application *application) getTransactionData(r *http.Request) models.TransactionData {

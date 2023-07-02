@@ -53,6 +53,8 @@ func main() {
 		version:  version,
 	}
 
+	application.createDirIfNotExist("./invoices")
+
 	err := application.serve()
 	if err != nil {
 		application.errorLog.Println("[Invoice microservice]:[main]:[main] - err := application.serve()", err)
