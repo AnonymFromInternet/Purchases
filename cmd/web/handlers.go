@@ -488,6 +488,7 @@ func (application *application) handlerGetAllAdminUsers(w http.ResponseWriter, r
 		return
 	}
 }
+
 func (application *application) handlerGetAdminUser(w http.ResponseWriter, r *http.Request) {
 	loggedUserID := application.SessionManager.GetInt(r.Context(), "userID")
 	intMap := make(map[string]int)
